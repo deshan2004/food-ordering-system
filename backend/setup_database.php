@@ -1,18 +1,25 @@
 <?php
 require_once 'db.php';
 
-// 1. Users Table
+// 1. Users Table (with role support)
 $sqlUsers = "CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(50),
     password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'customer',
     address VARCHAR(255) DEFAULT 'No. 45, Galle Road, Colombo 03',
     rewardsPoints INT DEFAULT 200,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )";
 $conn->query($sqlUsers);
+
+// Ensure role column exists if table was created earlier
+$conn->query("SHOW COLUMNS FROM users LIKE 'role'");
+if ($conn->affected_rows == 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'customer'");
+}
 
 // 2. Food Items Table
 $sqlFoodItems = "CREATE TABLE IF NOT EXISTS food_items (
@@ -66,6 +73,25 @@ $sqlOrderItems = "CREATE TABLE IF NOT EXISTS order_items (
 )";
 $conn->query($sqlOrderItems);
 
+// Insert Default Role Demo Accounts in MySQL
+$defaultUsers = [
+    ['Customer User', 'customer@bonchi.lk', '0771111111', 'password123', 'customer'],
+    ['Pilawos Restaurant Manager', 'restaurant@bonchi.lk', '0772222222', 'password123', 'restaurant'],
+    ['Sumith Perera (Rider)', 'driver@bonchi.lk', '0773333333', 'password123', 'driver'],
+    ['System Administrator', 'admin@bonchi.lk', '0774444444', 'password123', 'admin']
+];
+
+foreach ($defaultUsers as $u) {
+    $checkUser = $conn->query("SELECT id FROM users WHERE email = '{$u[1]}'");
+    if ($checkUser->num_rows == 0) {
+        $hashed = password_hash($u[3], PASSWORD_BCRYPT);
+        $stmt = $conn->prepare("INSERT INTO users (name, email, phone, password, role, rewardsPoints) VALUES (?, ?, ?, ?, ?, 500)");
+        $stmt->bind_param("sssss", $u[0], $u[1], $u[2], $hashed, $u[4]);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
+
 // Insert Sample Food Items if table is empty
 $checkCount = $conn->query("SELECT COUNT(*) as total FROM food_items");
 $rowCount = $checkCount->fetch_assoc()['total'];
@@ -81,7 +107,7 @@ if ($rowCount == 0) {
 
 echo json_encode([
     "status" => true,
-    "message" => "Database & Tables created successfully in MySQL!"
+    "message" => "Database, Tables, and Multi-Role Demo Accounts (Customer, Restaurant, Driver, Admin) created successfully in MySQL!"
 ]);
 
 $conn->close();

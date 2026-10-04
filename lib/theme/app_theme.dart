@@ -6,6 +6,7 @@ class AppTheme {
   static const Color primaryGreen = Color(0xFF059669); // Bonchi Emerald Green
   static const Color primaryGreenLight = Color(0xFF10B981);
   static const Color accentAmber = Color(0xFFFF9F0A);
+  static const Color primaryOrange = Color(0xFFFF9F0A);
   static const Color accentRed = Color(0xFFEF4444);
   static const Color starYellow = Color(0xFFFFB800);
 

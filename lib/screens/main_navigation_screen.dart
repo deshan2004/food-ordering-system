@@ -4,12 +4,16 @@ import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../models/user_model.dart';
 import 'home_screen.dart';
 import 'favorites_screen.dart';
 import 'cart_screen.dart';
 import 'order_tracking_screen.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
+import 'restaurant_dashboard_screen.dart';
+import 'driver_dashboard_screen.dart';
+import 'admin_dashboard_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -23,6 +27,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser;
+
+    // Route based on User Role from MySQL Database
+    if (user != null) {
+      if (user.role == UserRole.restaurant) {
+        return const RestaurantDashboardScreen();
+      }
+      if (user.role == UserRole.driver) {
+        return const DriverDashboardScreen();
+      }
+      if (user.role == UserRole.admin) {
+        return const AdminDashboardScreen();
+      }
+    }
+
     final cart = Provider.of<CartProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
     final activeOrder = orderProvider.activeOrder;
@@ -421,14 +441,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                   const Divider(height: 1, indent: 56, endIndent: 16),
                   _buildMenuTile(
-                    icon: Icons.history_rounded,
-                    title: 'Order History',
-                    subtitle: 'View your recent food orders',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Order History opened')),
-                      );
-                    },
+                    icon: Icons.swap_horiz_rounded,
+                    title: 'Switch User Role (Demo Mode)',
+                    subtitle: 'Current Role: ${user.role.name.toUpperCase()} (Click to change)',
+                    iconColor: AppTheme.primaryOrange,
+                    onTap: () => _showRoleDemoModal(context, auth),
                   ),
                   const Divider(height: 1, indent: 56, endIndent: 16),
                   _buildMenuTile(
@@ -495,16 +512,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Color? iconColor,
   }) {
+    final color = iconColor ?? AppTheme.primaryGreen;
     return ListTile(
       onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryGreen.withValues(alpha: 0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, color: AppTheme.primaryGreen, size: 20),
+        child: Icon(icon, color: color, size: 20),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -621,6 +640,60 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showRoleDemoModal(BuildContext context, AuthProvider auth) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select User Role (MySQL Demo)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Easily test Customer, Restaurant, Driver, and Admin interfaces:',
+              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            _buildRoleOption(ctx, auth, 'Customer UI', 'Browse & order food', Icons.shopping_bag, UserRole.customer),
+            _buildRoleOption(ctx, auth, 'Restaurant Manager', 'View live orders & kitchen status', Icons.restaurant, UserRole.restaurant),
+            _buildRoleOption(ctx, auth, 'Delivery Driver (Rider)', 'Pickup & deliver orders', Icons.two_wheeler, UserRole.driver),
+            _buildRoleOption(ctx, auth, 'Super Admin', 'Manage MySQL food items & sales', Icons.admin_panel_settings, UserRole.admin),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleOption(BuildContext ctx, AuthProvider auth, String title, String subtitle, IconData icon, UserRole role) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+        child: Icon(icon, color: AppTheme.primaryGreen),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+      onTap: () async {
+        Navigator.pop(ctx);
+        String demoEmail = 'customer@bonchi.lk';
+        if (role == UserRole.restaurant) demoEmail = 'restaurant@bonchi.lk';
+        if (role == UserRole.driver) demoEmail = 'driver@bonchi.lk';
+        if (role == UserRole.admin) demoEmail = 'admin@bonchi.lk';
+
+        await auth.login(email: demoEmail, password: 'password123');
+        setState(() {});
+      },
     );
   }
 }
