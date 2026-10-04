@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import '../models/order.dart';
 import '../models/cart_item.dart';
 import '../services/food_service.dart';
@@ -73,7 +75,36 @@ class OrderProvider with ChangeNotifier {
     _orders.insert(0, newOrder);
     _startStatusSimulation(newOrder.orderId);
     notifyListeners();
+
+    // Async save to MySQL Database via PHP API
+    _sendOrderToMySql(newOrder, items, grandTotalLkr, deliveryAddress);
+
     return newOrder;
+  }
+
+  Future<void> _sendOrderToMySql(OrderModel order, List<CartItem> items, double total, String address) async {
+    try {
+      final payload = {
+        'order_id': order.orderId,
+        'total_amount': total,
+        'delivery_address': address,
+        'payment_method': 'Cash on Delivery',
+        'items': items.map((i) => {
+          'id': i.foodItem.id,
+          'name': i.foodItem.name,
+          'quantity': i.quantity,
+          'price': i.totalPriceLkr,
+        }).toList(),
+      };
+
+      await http.post(
+        Uri.parse('http://localhost/food_api/place_order.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+    } catch (e) {
+      print('MySQL Order Sync Error: $e');
+    }
   }
 
   void _startStatusSimulation(String orderId) {

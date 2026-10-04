@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/food_item.dart';
 
 class FoodService {
@@ -104,5 +106,22 @@ class FoodService {
           item.description.toLowerCase().contains(lower) ||
           item.category.toLowerCase().contains(lower);
     }).toList();
+  }
+
+  static const String apiUrl = 'http://localhost/food_api/get_foods.php';
+
+  static Future<List<FoodItem>> fetchFoodItemsFromApi() async {
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map((item) => FoodItem.fromJson(item)).toList();
+      } else {
+        return mockFoodItems;
+      }
+    } catch (e) {
+      print('MySQL API connection error: $e');
+      return mockFoodItems;
+    }
   }
 }

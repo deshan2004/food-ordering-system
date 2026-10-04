@@ -22,6 +22,22 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'Rice & Curry';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  List<FoodItem> _apiFoodItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFoodItems();
+  }
+
+  Future<void> _loadFoodItems() async {
+    final items = await FoodService.fetchFoodItemsFromApi();
+    if (mounted) {
+      setState(() {
+        _apiFoodItems = items;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -35,9 +51,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUser = authProvider.currentUser;
 
-    List<FoodItem> displayedItems = FoodService.mockFoodItems;
+    List<FoodItem> allAvailableItems = _apiFoodItems.isNotEmpty ? _apiFoodItems : FoodService.mockFoodItems;
+    List<FoodItem> displayedItems = allAvailableItems;
     if (_searchQuery.isNotEmpty) {
-      displayedItems = FoodService.searchItems(_searchQuery);
+      final lower = _searchQuery.toLowerCase();
+      displayedItems = allAvailableItems.where((item) {
+        return item.name.toLowerCase().contains(lower) ||
+            item.restaurantName.toLowerCase().contains(lower) ||
+            item.description.toLowerCase().contains(lower) ||
+            item.category.toLowerCase().contains(lower);
+      }).toList();
     }
 
     return Scaffold(
@@ -46,8 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: RefreshIndicator(
           color: AppTheme.primaryGreen,
           onRefresh: () async {
-            await Future.delayed(const Duration(milliseconds: 800));
-            setState(() {});
+            await _loadFoodItems();
           },
           child: CustomScrollView(
           slivers: [
