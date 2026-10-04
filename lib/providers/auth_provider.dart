@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 
@@ -13,8 +14,15 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  static const String loginUrl = 'http://localhost/food_api/login.php';
-  static const String registerUrl = 'http://localhost/food_api/register.php';
+  static String get host {
+    if (!kIsWeb && Platform.isAndroid) {
+      return '10.0.2.2';
+    }
+    return 'localhost';
+  }
+
+  static String get loginUrl => 'http://$host/food_api/login.php';
+  static String get registerUrl => 'http://$host/food_api/register.php';
 
   void clearError() {
     _errorMessage = null;
