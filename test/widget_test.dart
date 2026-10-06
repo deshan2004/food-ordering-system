@@ -13,6 +13,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify Bonchi home screen title loads
-    expect(find.textContaining('Kohomada, Alex!'), findsOneWidget);
+    expect(find.textContaining('Ayubowan, Guest!'), findsOneWidget);
   });
 }
+
