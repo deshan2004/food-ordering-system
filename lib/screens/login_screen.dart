@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'alex.perera@gmail.com');
+  final _emailController = TextEditingController(text: 'customer@bonchi.lk');
   final _passwordController = TextEditingController(text: 'password123');
 
   bool _isPasswordVisible = false;
@@ -140,53 +140,19 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primaryGreen,
-                            AppTheme.primaryGreen.withValues(alpha: 0.8),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          )
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.restaurant_menu,
-                        size: 44,
-                        color: Colors.white,
-                      ),
+                    Image.asset(
+                      'assets/images/bonchi_logo.png',
+                      height: 95,
+                      fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 16),
-                    RichText(
-                      text: const TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Gourmet ',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'Express',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryGreen,
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Bonchi',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primaryGreen,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -512,7 +478,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleSocialLogin(String provider) async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     await auth.login(
-      email: '${provider.toLowerCase()}.user@gourmetexpress.lk',
+      email: '${provider.toLowerCase()}.user@bonchi.lk',
       password: 'password123',
     );
     if (mounted) {

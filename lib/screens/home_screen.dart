@@ -5,6 +5,7 @@ import '../providers/cart_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/food_service.dart';
+import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import 'food_detail_screen.dart';
 import 'login_screen.dart';
@@ -111,39 +112,42 @@ class _HomeScreenState extends State<HomeScreen> {
                             letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(width: 2),
-                        const Icon(Icons.two_wheeler, color: AppTheme.primaryGreen, size: 16),
                       ],
                     ),
 
-                    // Location Selector Pill (Colombo 03 v)
+                    // Location Selector Pill (Dynamic Live Address & Tap Modal)
                     Flexible(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEEF2FF),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen, size: 16),
-                            SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'Colombo 03',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 13,
-                                  color: AppTheme.textPrimary,
+                      child: GestureDetector(
+                        onTap: () => _showLocationPickerModal(context, authProvider),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEEF2FF),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.location_on, color: AppTheme.primaryGreen, size: 16),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  currentUser?.address.contains(',') == true
+                                      ? currentUser!.address.split(',').last.trim()
+                                      : (currentUser?.address ?? 'Colombo 03'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            SizedBox(width: 2),
-                            Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textPrimary, size: 16),
-                          ],
+                              const SizedBox(width: 2),
+                              const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textPrimary, size: 16),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -208,15 +212,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                currentUser != null
-                                    ? 'Kohomada, ${currentUser.name.split(' ').first}!'
-                                    : 'Ayubowan, Guest!',
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF0F172A),
-                                  letterSpacing: -0.3,
+                              Flexible(
+                                child: Text(
+                                  currentUser != null
+                                      ? 'Kohomada, ${currentUser.name.split(' ').first}!'
+                                      : 'Ayubowan, Guest!',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF0F172A),
+                                    letterSpacing: -0.3,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -225,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            "Bada ginida? Let's get you something\ntasty!",
+                            "Bada ginida? Let's get you something tasty!",
                             style: TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF475569),
@@ -236,6 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 12),
 
                     // Points Flame Pill or Login Pill
                     GestureDetector(
@@ -832,6 +841,196 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     ),
+    );
+  }
+
+  void _showLocationPickerModal(BuildContext context, AuthProvider auth) {
+    final currentUser = auth.currentUser;
+    final addressController = TextEditingController(
+      text: currentUser?.address ?? 'No. 45, Galle Road, Colombo 03',
+    );
+    bool isLoadingGps = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            top: 20,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Row(
+                children: [
+                  Icon(Icons.my_location_rounded, color: AppTheme.primaryGreen, size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'Select Delivery Location',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.textPrimary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Live Device GPS Fetch Button
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryGreen,
+                    side: const BorderSide(color: AppTheme.primaryGreen, width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: isLoadingGps
+                      ? null
+                      : () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          setModalState(() => isLoadingGps = true);
+                          try {
+                            final location = await LocationService.fetchLiveLocation();
+                            addressController.text = location.formattedAddress;
+                            if (auth.currentUser != null) {
+                              auth.updateProfile(address: location.formattedAddress);
+                            }
+                            if (mounted) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.gps_fixed, color: Colors.white, size: 18),
+                                      const SizedBox(width: 8),
+                                      Expanded(child: Text('Live GPS Location Detected: ${location.formattedAddress}')),
+                                    ],
+                                  ),
+                                  backgroundColor: AppTheme.primaryGreen,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('GPS Error: ${e.toString().replaceAll("Exception: ", "")}'),
+                                  backgroundColor: AppTheme.accentRed,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) {
+                              setModalState(() => isLoadingGps = false);
+                            }
+                          }
+                        },
+                  icon: isLoadingGps
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryGreen),
+                        )
+                      : const Icon(Icons.gps_fixed, size: 18),
+                  label: Text(
+                    isLoadingGps ? 'Fetching GPS Location...' : '📍 Detect My Live GPS Location',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                  ),
+                ),
+              ),
+
+              TextField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  hintText: 'Enter street address & city',
+                  prefixIcon: const Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Popular Locations in Sri Lanka',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.textSecondary),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  'Colombo 03 (Kollupitiya)',
+                  'Colombo 07 (Cinnamon Gardens)',
+                  'Colombo 04 (Bambalapitiya)',
+                  'Dehiwala',
+                  'Kandy Central',
+                  'Galle Fort',
+                ].map((loc) {
+                  return ActionChip(
+                    avatar: const Icon(Icons.place, size: 14, color: AppTheme.primaryGreen),
+                    label: Text(loc, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    backgroundColor: const Color(0xFFF1F5F9),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    onPressed: () {
+                      addressController.text = loc;
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () {
+                    if (auth.currentUser != null) {
+                      auth.updateProfile(address: addressController.text.trim());
+                    }
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Delivery location updated to: ${addressController.text.trim()}'),
+                        backgroundColor: AppTheme.primaryGreen,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: const Text('Confirm Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

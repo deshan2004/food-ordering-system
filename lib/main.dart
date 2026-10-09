@@ -25,7 +25,7 @@ class FoodOrderingApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],
       child: MaterialApp(
-        title: 'Gourmet Express - Food Ordering',
+        title: 'Bonchi - Sri Lankan Food Ordering',
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,
         theme: AppTheme.lightTheme,

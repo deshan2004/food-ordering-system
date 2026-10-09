@@ -1,31 +1,183 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../providers/order_provider.dart';
+import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 
-class OrderTrackingScreen extends StatelessWidget {
+class OrderTrackingScreen extends StatefulWidget {
   final OrderModel order;
 
   const OrderTrackingScreen({super.key, required this.order});
+
+  @override
+  State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
+}
+
+class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
+  final MapController _mapController = MapController();
+  double _currentZoom = 14.8;
+  LatLng? _userGpsLocation;
+
+  // Real Street Coordinates in Colombo
+  static const LatLng _restaurantLocation = LatLng(6.9085, 79.8512); // Pilawos Kollupitiya
+  static const LatLng _riderLocation = LatLng(6.9048, 79.8530);      // Rider en route on Galle Road
+  static const LatLng _defaultDestination = LatLng(6.9015, 79.8560); // Flower Road Col 07
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserLiveGps();
+  }
+
+  Future<void> _fetchUserLiveGps() async {
+    try {
+      final loc = await LocationService.fetchLiveLocation();
+      if (mounted) {
+        setState(() {
+          _userGpsLocation = LatLng(loc.latitude, loc.longitude);
+        });
+        _mapController.move(_userGpsLocation!, 15.0);
+      }
+    } catch (e) {
+      debugPrint('Live GPS fetch fallback: $e');
+    }
+  }
+
+  List<LatLng> get _routePoints => [
+        _restaurantLocation,
+        const LatLng(6.9072, 79.8518),
+        _riderLocation,
+        const LatLng(6.9032, 79.8542),
+        _userGpsLocation ?? _defaultDestination,
+      ];
+
+  void _zoomIn() {
+    setState(() {
+      _currentZoom = (_currentZoom + 0.8).clamp(10.0, 18.0);
+      _mapController.move(_riderLocation, _currentZoom);
+    });
+  }
+
+  void _zoomOut() {
+    setState(() {
+      _currentZoom = (_currentZoom - 0.8).clamp(10.0, 18.0);
+      _mapController.move(_riderLocation, _currentZoom);
+    });
+  }
+
+  void _reCenter() {
+    _mapController.move(_riderLocation, 15.0);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<OrderProvider>(
       builder: (context, orderProvider, child) {
         final freshOrder = orderProvider.orders.firstWhere(
-          (o) => o.orderId == order.orderId,
-          orElse: () => order,
+          (o) => o.orderId == widget.order.orderId,
+          orElse: () => widget.order,
         );
 
         return Scaffold(
           backgroundColor: const Color(0xFFE2E8F0),
           body: Stack(
             children: [
-              // Custom Simulated Map Background Overlay
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _MapBackgroundPainter(),
+              // Real OpenStreetMap Layer using flutter_map
+              FlutterMap(
+                mapController: _mapController,
+                options: const MapOptions(
+                  initialCenter: LatLng(6.9048, 79.8530),
+                  initialZoom: 14.8,
+                  maxZoom: 18.5,
+                  minZoom: 11.0,
+                ),
+                children: [
+                  // OpenStreetMap Tile Layer
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.bonchi.food_ordering_system',
+                  ),
+
+                  // Route Polyline (Green Delivery Path)
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: _routePoints,
+                        strokeWidth: 5.5,
+                        color: AppTheme.primaryGreen,
+                        borderColor: Colors.white,
+                        borderStrokeWidth: 1.5,
+                      ),
+                    ],
+                  ),
+
+                  // Map Markers Layer
+                  MarkerLayer(
+                    markers: [
+                      // Restaurant Marker (Pilawos)
+                      Marker(
+                        point: _restaurantLocation,
+                        width: 70,
+                        height: 70,
+                        child: _buildMapPin(
+                          icon: Icons.storefront_rounded,
+                          color: const Color(0xFFEA580C),
+                          label: 'Pilawos',
+                        ),
+                      ),
+
+                      // Rider Marker (Bonchi Delivery Rider)
+                      Marker(
+                        point: _riderLocation,
+                        width: 75,
+                        height: 75,
+                        child: _buildRiderMarker(freshOrder.riderName),
+                      ),
+
+                      // Customer Destination Pin
+                      Marker(
+                        point: _userGpsLocation ?? _defaultDestination,
+                        width: 70,
+                        height: 70,
+                        child: _buildMapPin(
+                          icon: Icons.location_on_rounded,
+                          color: AppTheme.accentRed,
+                          label: 'You',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Map Action Controls (Zoom & Re-center floating column on Right)
+              Positioned(
+                top: 100,
+                right: 16,
+                child: Column(
+                  children: [
+                    _buildMapControlButton(
+                      icon: Icons.add,
+                      onTap: _zoomIn,
+                      tooltip: 'Zoom In',
+                    ),
+                    const SizedBox(height: 8),
+                    _buildMapControlButton(
+                      icon: Icons.remove,
+                      onTap: _zoomOut,
+                      tooltip: 'Zoom Out',
+                    ),
+                    const SizedBox(height: 8),
+                    _buildMapControlButton(
+                      icon: Icons.my_location_rounded,
+                      onTap: _reCenter,
+                      tooltip: 'Re-center Rider',
+                      iconColor: AppTheme.primaryGreen,
+                    ),
+                  ],
                 ),
               ),
 
@@ -50,19 +202,21 @@ class OrderTrackingScreen extends StatelessWidget {
 
                       // Order ID Badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 3)),
+                          ],
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.location_on, color: AppTheme.primaryGreen, size: 14),
-                            const SizedBox(width: 4),
+                            const Icon(Icons.map_outlined, color: AppTheme.primaryGreen, size: 15),
+                            const SizedBox(width: 6),
                             Text(
-                              freshOrder.orderId,
-                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.primaryGreen),
+                              '${freshOrder.orderId} • Live Map',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textPrimary),
                             ),
                           ],
                         ),
@@ -71,7 +225,7 @@ class OrderTrackingScreen extends StatelessWidget {
                       const CircleAvatar(
                         backgroundColor: Colors.white,
                         radius: 18,
-                        child: Icon(Icons.public, color: AppTheme.textPrimary, size: 20),
+                        child: Icon(Icons.share_outlined, color: AppTheme.textPrimary, size: 18),
                       ),
                     ],
                   ),
@@ -119,7 +273,7 @@ class OrderTrackingScreen extends StatelessWidget {
                                 const Icon(Icons.circle, color: AppTheme.primaryGreen, size: 8),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'LIVE TRACKING 🚚',
+                                  'LIVE STREET TRACKING 🚚',
                                   style: TextStyle(
                                     color: AppTheme.primaryGreen.withValues(alpha: 0.9),
                                     fontSize: 11,
@@ -183,9 +337,14 @@ class OrderTrackingScreen extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              const CircleAvatar(
-                                radius: 20,
-                                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.asset(
+                                  'assets/images/bonchi_logo.png',
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -252,7 +411,9 @@ class OrderTrackingScreen extends StatelessWidget {
                                   children: [
                                     const Text('Pilawaos Night Kottu Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: AppTheme.textPrimary)),
                                     Text(
-                                      '${freshOrder.items.first.foodItem.name} (${freshOrder.items.first.selectedSpiceLevel?.name ?? "Regular"})',
+                                      freshOrder.items.isNotEmpty
+                                          ? '${freshOrder.items.first.foodItem.name} (${freshOrder.items.first.selectedSpiceLevel?.name ?? "Regular"})'
+                                          : 'Sri Lankan Meal Pack',
                                       style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -311,6 +472,93 @@ class OrderTrackingScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMapControlButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required String tooltip,
+    Color iconColor = AppTheme.textPrimary,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 8, offset: const Offset(0, 3)),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: iconColor, size: 20),
+        onPressed: onTap,
+        tooltip: tooltip,
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Widget _buildMapPin({required IconData icon, required Color color, required String label}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4)),
+            ],
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          child: Icon(icon, color: Colors.white, size: 18),
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRiderMarker(String riderName) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Pulsing background glow
+        Container(
+          width: 54,
+          height: 54,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+            shape: BoxShape.circle,
+          ),
+        ),
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryGreen,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: [
+              BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: const Icon(Icons.two_wheeler, color: Colors.white, size: 22),
+        ),
+      ],
     );
   }
 
@@ -384,48 +632,4 @@ class OrderTrackingScreen extends StatelessWidget {
       ],
     );
   }
-}
-
-// Custom Painter to render simulated map roads & pins
-class _MapBackgroundPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bgPaint = Paint()..color = const Color(0xFFE2E8F0);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
-
-    final roadPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 14
-      ..style = PaintingStyle.stroke;
-
-    // Simulated roads
-    final path = Path()
-      ..moveTo(0, size.height * 0.2)
-      ..lineTo(size.width * 0.8, size.height * 0.1)
-      ..lineTo(size.width, size.height * 0.3);
-
-    final path2 = Path()
-      ..moveTo(size.width * 0.3, 0)
-      ..lineTo(size.width * 0.5, size.height * 0.5)
-      ..lineTo(size.width * 0.1, size.height * 0.8);
-
-    canvas.drawPath(path, roadPaint);
-    canvas.drawPath(path2, roadPaint);
-
-    // Green Delivery Route Line
-    final routePaint = Paint()
-      ..color = AppTheme.primaryGreen
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke;
-
-    final routePath = Path()
-      ..moveTo(size.width * 0.75, size.height * 0.12)
-      ..lineTo(size.width * 0.45, size.height * 0.28)
-      ..lineTo(size.width * 0.35, size.height * 0.42);
-
-    canvas.drawPath(routePath, routePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -323,7 +323,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         title: const Text('Terms & Privacy Policy'),
                                         content: const SingleChildScrollView(
                                           child: Text(
-                                            'By using Gourmet Express, you agree to our Terms of Service and Privacy Policy regarding food ordering, delivery tracking, and reward points management.',
+                                            'By using Bonchi, you agree to our Terms of Service and Privacy Policy regarding food ordering, delivery tracking, and reward points management.',
                                           ),
                                         ),
                                         actions: [

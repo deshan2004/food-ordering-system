@@ -175,7 +175,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'Welcome to Gourmet Express',
+                  'Welcome to Bonchi',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                   textAlign: TextAlign.center,
                 ),
@@ -621,7 +621,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Log Out?', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Are you sure you want to log out of your Gourmet Express account?'),
+        content: const Text('Are you sure you want to log out of your Bonchi account?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

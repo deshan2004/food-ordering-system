@@ -72,5 +72,9 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Bonchi requires access to your location to find nearby restaurants and deliver food to your address.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Bonchi requires access to your location for real-time delivery tracking.</string>
 </dict>
 </plist>
