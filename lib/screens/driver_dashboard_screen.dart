@@ -41,31 +41,75 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        titleSpacing: 16,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0284C7).withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
+            // Bonchi Mascot Brand Logo
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/bonchi_logo.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.eco, color: AppTheme.primaryGreen, size: 20),
+                ),
               ),
-              child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF0284C7), size: 20),
             ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Bonchi Rider Portal',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.textPrimary, letterSpacing: -0.3),
-                ),
-                Text(
-                  '$_driverName • Col 03',
-                  style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
-                ),
-              ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Bonchi',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.primaryGreen,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
+                        ),
+                        child: const Text(
+                          'RIDER',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0284C7),
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '$_driverName • $_driverVehicle',
+                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -77,7 +121,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               onTap: () => authProvider.setRole(UserRole.customer),
               borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(20),
@@ -86,11 +130,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.swap_horiz_rounded, size: 15, color: AppTheme.primaryGreen),
+                    Icon(Icons.swap_horiz_rounded, size: 14, color: AppTheme.primaryGreen),
                     SizedBox(width: 4),
                     Text(
                       'Customer App',
-                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
                     ),
                   ],
                 ),
@@ -188,55 +232,62 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _isOnline ? const Color(0xFF22C55E) : Colors.redAccent,
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_isOnline ? const Color(0xFF22C55E) : Colors.redAccent).withValues(alpha: 0.6),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    ),
-                  ],
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _isOnline ? const Color(0xFF22C55E) : Colors.redAccent,
+              boxShadow: [
+                BoxShadow(
+                  color: (_isOnline ? const Color(0xFF22C55E) : Colors.redAccent).withValues(alpha: 0.6),
+                  blurRadius: 8,
+                  spreadRadius: 1,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isOnline ? 'Rider Status: ONLINE & READY' : 'Rider Status: OFFLINE',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
-                  ),
-                  Text(
-                    _isOnline ? 'Scanning nearby food orders in Colombo' : 'Turn online to receive new food orders',
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
-          Switch(
-            value: _isOnline,
-            activeColor: const Color(0xFF22C55E),
-            onChanged: (val) {
-              setState(() => _isOnline = val);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(val ? 'You are now Online! Receiving nearby orders.' : 'You went Offline.'),
-                  backgroundColor: val ? AppTheme.primaryGreen : Colors.grey.shade800,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _isOnline ? 'Rider Status: ONLINE & READY' : 'Rider Status: OFFLINE',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              );
-            },
+                const SizedBox(height: 2),
+                Text(
+                  _isOnline ? 'Scanning nearby food orders' : 'Turn online to receive new food orders',
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          Transform.scale(
+            scale: 0.82,
+            child: Switch(
+              value: _isOnline,
+              activeColor: const Color(0xFF22C55E),
+              onChanged: (val) {
+                setState(() => _isOnline = val);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(val ? 'You are now Online! Receiving nearby orders.' : 'You went Offline.'),
+                    backgroundColor: val ? AppTheme.primaryGreen : Colors.grey.shade800,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -246,7 +297,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   Widget _buildQuickStatCard(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -260,7 +311,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(6),
@@ -270,7 +320,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
               child: Icon(icon, color: color, size: 16),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: color),
@@ -280,7 +330,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

@@ -45,31 +45,75 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        titleSpacing: 16,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            // Bonchi Mascot Brand Logo
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/bonchi_logo.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.eco, color: AppTheme.primaryGreen, size: 20),
+                ),
               ),
-              child: const Icon(Icons.soup_kitchen_rounded, color: Colors.orange, size: 20),
             ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Kitchen Live Manager',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.textPrimary, letterSpacing: -0.3),
-                ),
-                Text(
-                  '$_restaurantName • Col 03',
-                  style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
-                ),
-              ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Bonchi',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.primaryGreen,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                        ),
+                        child: const Text(
+                          'KITCHEN',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.orange,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '$_restaurantName • Col 03',
+                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -81,7 +125,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
               onTap: () => authProvider.setRole(UserRole.customer),
               borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(20),
@@ -90,11 +134,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.swap_horiz_rounded, size: 15, color: AppTheme.primaryGreen),
+                    Icon(Icons.swap_horiz_rounded, size: 14, color: AppTheme.primaryGreen),
                     SizedBox(width: 4),
                     Text(
                       'Customer App',
-                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
                     ),
                   ],
                 ),
@@ -275,10 +319,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
 
   Widget _buildKitchenStatusBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: _isKitchenOpen ? const Color(0xFF0F172A) : Colors.grey.shade800,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -288,44 +332,47 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber,
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber).withValues(alpha: 0.6),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    ),
-                  ],
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber,
+              boxShadow: [
+                BoxShadow(
+                  color: (_isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber).withValues(alpha: 0.6),
+                  blurRadius: 8,
+                  spreadRadius: 1,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isKitchenOpen ? 'Kitchen: OPEN & COOKING' : 'Kitchen: BUSY / PAUSED',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _isKitchenOpen ? 'Receiving online food orders from customers' : 'New orders temporarily paused',
-                    style: const TextStyle(color: Colors.white70, fontSize: 11.5),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _isKitchenOpen ? 'Kitchen: OPEN & COOKING' : 'Kitchen: BUSY / PAUSED',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _isKitchenOpen ? 'Receiving online food orders' : 'New orders temporarily paused',
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
           Transform.scale(
-            scale: 0.85,
+            scale: 0.82,
             child: Switch(
               value: _isKitchenOpen,
               activeColor: const Color(0xFF22C55E),
@@ -350,29 +397,39 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
   Widget _buildQuickStatCard(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 3)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2)),
           ],
           border: Border.all(color: Colors.grey.shade200),
         ),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 16, color: color),
             ),
-            const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, color: AppTheme.textPrimary)),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppTheme.textPrimary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
