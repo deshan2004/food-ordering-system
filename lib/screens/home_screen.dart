@@ -9,6 +9,7 @@ import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import 'food_detail_screen.dart';
 import 'login_screen.dart';
+import 'map_location_picker_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onNavigateTab;
@@ -882,7 +883,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
               const Row(
                 children: [
-                  Icon(Icons.my_location_rounded, color: AppTheme.primaryGreen, size: 22),
+                  Icon(Icons.location_on_rounded, color: AppTheme.primaryGreen, size: 22),
                   SizedBox(width: 8),
                   Text(
                     'Select Delivery Location',
@@ -892,7 +893,81 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Live Device GPS Fetch Button
+              // 1. Choose on Interactive Map Card
+              InkWell(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final result = await Navigator.push<LocationResult>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MapLocationPickerScreen(
+                        initialLatitude: currentUser?.latitude,
+                        initialLongitude: currentUser?.longitude,
+                        initialAddress: currentUser?.address,
+                      ),
+                    ),
+                  );
+                  if (result != null && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text('Delivery location updated to: ${result.formattedAddress}')),
+                          ],
+                        ),
+                        backgroundColor: AppTheme.primaryGreen,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  }
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.35), width: 1.5),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryGreen,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.map_rounded, color: Colors.white, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Choose on Interactive Map',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: AppTheme.textPrimary),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Pinpoint exact delivery location with map pin',
+                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppTheme.primaryGreen),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // 2. Live Device GPS Fetch Button
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 16),
@@ -900,7 +975,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primaryGreen,
                     side: const BorderSide(color: AppTheme.primaryGreen, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   onPressed: isLoadingGps
@@ -909,12 +984,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           final messenger = ScaffoldMessenger.of(context);
                           setModalState(() => isLoadingGps = true);
                           try {
-                            final location = await LocationService.fetchLiveLocation();
+                            final location = await LocationService.fetchLiveLocation(allowMockFallback: false);
                             addressController.text = location.formattedAddress;
                             if (auth.currentUser != null) {
-                              auth.updateProfile(address: location.formattedAddress);
+                              auth.updateProfile(
+                                address: location.formattedAddress,
+                                latitude: location.latitude,
+                                longitude: location.longitude,
+                              );
                             }
-                            if (mounted) {
+                            if (context.mounted) {
                               messenger.showSnackBar(
                                 SnackBar(
                                   content: Row(
@@ -931,10 +1010,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }
                           } catch (e) {
-                            if (mounted) {
+                            if (context.mounted) {
                               messenger.showSnackBar(
                                 SnackBar(
-                                  content: Text('GPS Error: ${e.toString().replaceAll("Exception: ", "")}'),
+                                  content: Text(e.toString().replaceAll('Exception: ', '')),
                                   backgroundColor: AppTheme.accentRed,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -953,52 +1032,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryGreen),
                         )
-                      : const Icon(Icons.gps_fixed, size: 18),
+                      : const Icon(Icons.my_location_rounded, size: 18),
                   label: Text(
-                    isLoadingGps ? 'Fetching GPS Location...' : '📍 Detect My Live GPS Location',
+                    isLoadingGps ? 'Locating your live position...' : '📍 Detect My Live GPS Location',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                   ),
                 ),
               ),
 
+              // 3. Manual Address Input Field
               TextField(
                 controller: addressController,
                 decoration: InputDecoration(
-                  hintText: 'Enter street address & city',
-                  prefixIcon: const Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen),
+                  labelText: 'Delivery Address',
+                  hintText: 'Enter street address, building, or landmark',
+                  prefixIcon: const Icon(Icons.edit_location_alt_outlined, color: AppTheme.primaryGreen),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Popular Locations in Sri Lanka',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  'Colombo 03 (Kollupitiya)',
-                  'Colombo 07 (Cinnamon Gardens)',
-                  'Colombo 04 (Bambalapitiya)',
-                  'Dehiwala',
-                  'Kandy Central',
-                  'Galle Fort',
-                ].map((loc) {
-                  return ActionChip(
-                    avatar: const Icon(Icons.place, size: 14, color: AppTheme.primaryGreen),
-                    label: Text(loc, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    onPressed: () {
-                      addressController.text = loc;
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
+
+              // 4. Confirm Location Action Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(

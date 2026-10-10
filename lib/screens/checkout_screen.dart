@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import 'order_tracking_screen.dart';
+import 'map_location_picker_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -14,8 +17,25 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedPayment = 'Credit Card';
-  final String _deliveryAddress = 'Your Location • 42/1, Flower Road, Col 07';
+  String? _deliveryAddress;
+  double? _deliveryLat;
+  double? _deliveryLng;
   String _deliveryTimeOption = 'ASAP (20-25 min)';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.currentUser != null) {
+        setState(() {
+          _deliveryAddress = auth.currentUser!.address;
+          _deliveryLat = auth.currentUser!.latitude;
+          _deliveryLng = auth.currentUser!.longitude;
+        });
+      }
+    });
+  }
 
   String _formatLkr(double val) {
     return 'LKR ${val.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}';
@@ -25,6 +45,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cart = Provider.of<CartProvider>(context);
+    final auth = Provider.of<AuthProvider>(context);
+    final currentAddress = _deliveryAddress ?? (auth.currentUser?.address ?? 'No. 45, Galle Road, Colombo 03');
 
     return Scaffold(
       appBar: AppBar(
@@ -38,8 +60,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Delivery Address Card
-                  Text('Delivery Address', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Delivery Address', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.primaryGreen,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                        onPressed: () async {
+                          final result = await Navigator.push<LocationResult>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MapLocationPickerScreen(
+                                initialLatitude: _deliveryLat ?? auth.currentUser?.latitude,
+                                initialLongitude: _deliveryLng ?? auth.currentUser?.longitude,
+                                initialAddress: currentAddress,
+                              ),
+                            ),
+                          );
+                          if (result != null) {
+                            setState(() {
+                              _deliveryAddress = result.formattedAddress;
+                              _deliveryLat = result.latitude;
+                              _deliveryLng = result.longitude;
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.map_rounded, size: 16),
+                        label: const Text('Choose on Map', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -62,9 +116,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Home Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              const SizedBox(height: 2),
-                              Text(_deliveryAddress, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
+                              const Text('Delivery Destination', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              const SizedBox(height: 3),
+                              Text(currentAddress, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12.5)),
                             ],
                           ),
                         ),
@@ -167,7 +221,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           deliveryFeeLkr: cart.deliveryFeeLkr,
                           discountLkr: cart.discountLkr,
                           grandTotalLkr: cart.grandTotalLkr,
-                          deliveryAddress: _deliveryAddress,
+                          deliveryAddress: currentAddress,
+                          destinationLatitude: _deliveryLat,
+                          destinationLongitude: _deliveryLng,
                         );
 
                         cart.clearCart();

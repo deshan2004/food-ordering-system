@@ -46,12 +46,19 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     }
   }
 
+  LatLng get _targetDestination {
+    if (widget.order.destinationLatitude != null && widget.order.destinationLongitude != null) {
+      return LatLng(widget.order.destinationLatitude!, widget.order.destinationLongitude!);
+    }
+    return _userGpsLocation ?? _defaultDestination;
+  }
+
   List<LatLng> get _routePoints => [
         _restaurantLocation,
         const LatLng(6.9072, 79.8518),
         _riderLocation,
         const LatLng(6.9032, 79.8542),
-        _userGpsLocation ?? _defaultDestination,
+        _targetDestination,
       ];
 
   void _zoomIn() {
@@ -139,7 +146,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
                       // Customer Destination Pin
                       Marker(
-                        point: _userGpsLocation ?? _defaultDestination,
+                        point: _targetDestination,
                         width: 70,
                         height: 70,
                         child: _buildMapPin(

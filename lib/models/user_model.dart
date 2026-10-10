@@ -14,6 +14,8 @@ class UserModel {
   final String avatarUrl;
   final int rewardsPoints;
   final String address;
+  final double? latitude;
+  final double? longitude;
 
   UserModel({
     required this.id,
@@ -24,6 +26,8 @@ class UserModel {
     this.avatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
     this.rewardsPoints = 350,
     this.address = 'No. 45, Galle Road, Colombo 03',
+    this.latitude,
+    this.longitude,
   });
 
   UserModel copyWith({
@@ -35,6 +39,8 @@ class UserModel {
     String? avatarUrl,
     int? rewardsPoints,
     String? address,
+    double? latitude,
+    double? longitude,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -45,6 +51,8 @@ class UserModel {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       rewardsPoints: rewardsPoints ?? this.rewardsPoints,
       address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 
@@ -66,6 +74,8 @@ class UserModel {
           : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
       rewardsPoints: int.tryParse(json['rewardsPoints']?.toString() ?? '200') ?? 200,
       address: json['address']?.toString() ?? 'No. 45, Galle Road, Colombo 03',
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
     );
   }
 
@@ -79,6 +89,8 @@ class UserModel {
       'avatarUrl': avatarUrl,
       'rewardsPoints': rewardsPoints,
       'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }

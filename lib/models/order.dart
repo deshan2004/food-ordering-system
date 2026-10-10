@@ -23,6 +23,8 @@ class OrderModel {
   OrderStatus status;
   final int estimatedMinsLeft;
   final String estimatedArrivalTime;
+  final double? destinationLatitude;
+  final double? destinationLongitude;
 
   OrderModel({
     required this.orderId,
@@ -40,6 +42,8 @@ class OrderModel {
     this.status = OrderStatus.onTheWay,
     this.estimatedMinsLeft = 12,
     this.estimatedArrivalTime = '8:42 PM',
+    this.destinationLatitude,
+    this.destinationLongitude,
   });
 
   String get statusText {

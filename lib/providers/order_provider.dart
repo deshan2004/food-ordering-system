@@ -59,6 +59,8 @@ class OrderProvider with ChangeNotifier {
     required double discountLkr,
     required double grandTotalLkr,
     required String deliveryAddress,
+    double? destinationLatitude,
+    double? destinationLongitude,
   }) {
     final newOrder = OrderModel(
       orderId: '#BC-${(1000 + DateTime.now().millisecond % 9000).toString()}',
@@ -68,6 +70,8 @@ class OrderProvider with ChangeNotifier {
       discountLkr: discountLkr,
       grandTotalLkr: grandTotalLkr,
       deliveryAddress: deliveryAddress,
+      destinationLatitude: destinationLatitude,
+      destinationLongitude: destinationLongitude,
       orderTime: DateTime.now(),
       status: OrderStatus.confirmed,
     );
