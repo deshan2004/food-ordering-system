@@ -170,9 +170,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               // Detail Content Sheet
               SliverToBoxAdapter(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
@@ -284,12 +285,15 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                   margin: const EdgeInsets.only(right: 8),
                                   padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFFECFDF5) : Colors.white,
+                                    color: isSelected ? const Color(0xFFECFDF5).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.90),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: isSelected ? AppTheme.primaryGreen : AppTheme.lightBorder,
-                                      width: isSelected ? 2 : 1,
+                                      color: isSelected ? AppTheme.primaryGreen : Colors.white.withValues(alpha: 0.95),
+                                      width: isSelected ? 1.8 : 1.2,
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2)),
+                                    ],
                                   ),
                                   child: Stack(
                                     clipBehavior: Clip.none,
@@ -351,12 +355,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             bottom: 0,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.94),
                 boxShadow: [
-                  BoxShadow(color: Colors.black12, blurRadius: 15, offset: Offset(0, -4)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, -4)),
                 ],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
               ),
               child: SafeArea(
                 child: Row(

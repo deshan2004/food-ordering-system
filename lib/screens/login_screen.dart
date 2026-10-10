@@ -228,16 +228,11 @@ class _LoginScreenState extends State<LoginScreen> {
               // Login Form Card
               Container(
                 padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                decoration: AppTheme.glassDecoration(
+                  opacity: 0.92,
+                  borderRadius: 24,
+                  blurRadius: 20,
+                  borderWidth: 1.5,
                 ),
                 child: Form(
                   key: _formKey,
@@ -636,17 +631,10 @@ class _LoginScreenState extends State<LoginScreen> {
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.lightBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+        decoration: AppTheme.glassDecoration(
+          opacity: 0.90,
+          borderRadius: 14,
+          blurRadius: 8,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -54,15 +54,45 @@ class AppTheme {
       elevation: 10,
     ),
     cardTheme: CardThemeData(
-      color: lightCard,
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      color: Colors.white.withValues(alpha: 0.92),
+      elevation: 0,
+      shadowColor: Colors.black.withValues(alpha: 0.04),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: lightBorder, width: 1),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.95), width: 1.2),
       ),
     ),
   );
 
   static ThemeData darkTheme = lightTheme;
+
+  /// Reusable frosted glass decoration for cards, pills, and panels
+  static BoxDecoration glassDecoration({
+    double opacity = 0.90,
+    double borderRadius = 20,
+    Color borderColor = Colors.white,
+    double borderWidth = 1.2,
+    double blurRadius = 14,
+    Offset shadowOffset = const Offset(0, 4),
+    double shadowOpacity = 0.04,
+    Color baseColor = Colors.white,
+  }) {
+    return BoxDecoration(
+      color: baseColor.withValues(alpha: opacity),
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(
+        color: borderColor == Colors.white
+            ? Colors.white.withValues(alpha: 0.95)
+            : borderColor,
+        width: borderWidth,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: shadowOpacity),
+          blurRadius: blurRadius,
+          offset: shadowOffset,
+        ),
+      ],
+    );
+  }
 }

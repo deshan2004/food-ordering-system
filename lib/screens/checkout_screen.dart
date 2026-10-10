@@ -99,10 +99,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.lightBorder),
+                    decoration: AppTheme.glassDecoration(
+                      opacity: 0.90,
+                      borderRadius: 16,
+                      blurRadius: 10,
                     ),
                     child: Row(
                       children: [
@@ -193,10 +193,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.lightBorder),
+                    decoration: AppTheme.glassDecoration(
+                      opacity: 0.90,
+                      borderRadius: 16,
+                      blurRadius: 10,
                     ),
                     child: Column(
                       children: [
@@ -327,12 +327,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected ? const Color(0xFFECFDF5).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.90),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryGreen : AppTheme.lightBorder,
-            width: isSelected ? 2 : 1,
+            color: isSelected ? AppTheme.primaryGreen : Colors.white.withValues(alpha: 0.95),
+            width: isSelected ? 1.8 : 1.2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           children: [

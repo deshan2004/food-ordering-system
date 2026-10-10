@@ -55,10 +55,10 @@ class FavoritesScreen extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppTheme.lightBorder),
+                    decoration: AppTheme.glassDecoration(
+                      opacity: 0.90,
+                      borderRadius: 18,
+                      blurRadius: 12,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

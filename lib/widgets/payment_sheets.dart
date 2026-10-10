@@ -142,12 +142,19 @@ class _PaymentMethodsSheetContent extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: item.isDefault ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+        color: item.isDefault ? const Color(0xFFF0FDF4).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.90),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: item.isDefault ? AppTheme.primaryGreen.withValues(alpha: 0.5) : Colors.grey.shade200,
-          width: item.isDefault ? 1.5 : 1,
+          color: item.isDefault ? AppTheme.primaryGreen.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.95),
+          width: item.isDefault ? 1.5 : 1.2,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [

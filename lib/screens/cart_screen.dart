@@ -69,10 +69,10 @@ class _CartScreenState extends State<CartScreen> {
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.lightBorder),
+                          decoration: AppTheme.glassDecoration(
+                            opacity: 0.90,
+                            borderRadius: 18,
+                            blurRadius: 10,
                           ),
                           child: Row(
                             children: [
@@ -151,11 +151,12 @@ class _CartScreenState extends State<CartScreen> {
                 // Summary Card
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.94),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
                     boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 15, offset: Offset(0, -4)),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 18, offset: const Offset(0, -4)),
                     ],
                   ),
                   child: SafeArea(

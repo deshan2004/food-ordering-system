@@ -83,10 +83,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 16, offset: const Offset(0, 4)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: ClipRRect(
@@ -94,7 +99,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: (index) => setState(() => _currentIndex = index),
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.white.withValues(alpha: 0.85),
             selectedItemColor: AppTheme.primaryGreen,
             unselectedItemColor: AppTheme.textSecondary,
             selectedFontSize: 11,
@@ -266,13 +271,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.lightBorder),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2)),
-                  ],
+                decoration: AppTheme.glassDecoration(
+                  opacity: 0.90,
+                  borderRadius: 20,
+                  borderWidth: 1.2,
+                  blurRadius: 8,
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -367,16 +370,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             // Premium User Header Card
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 18,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+              decoration: AppTheme.glassDecoration(
+                opacity: 0.92,
+                borderRadius: 24,
+                blurRadius: 18,
               ),
               child: Row(
                 children: [
@@ -586,12 +583,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             _buildSectionHeader('ACCOUNT & LOCATION'),
             const SizedBox(height: 8),
             Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 2)),
-                ],
+              decoration: AppTheme.glassDecoration(
+                opacity: 0.92,
+                borderRadius: 22,
+                blurRadius: 14,
               ),
               child: Column(
                 children: [
@@ -681,12 +676,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             _buildSectionHeader('PREFERENCES & SUPPORT'),
             const SizedBox(height: 8),
             Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 2)),
-                ],
+              decoration: AppTheme.glassDecoration(
+                opacity: 0.92,
+                borderRadius: 22,
+                blurRadius: 14,
               ),
               child: Column(
                 children: [
@@ -778,16 +771,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.025),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
+        decoration: AppTheme.glassDecoration(
+          opacity: 0.90,
+          borderRadius: 18,
+          blurRadius: 10,
+          shadowOpacity: 0.03,
         ),
         child: Column(
           children: [

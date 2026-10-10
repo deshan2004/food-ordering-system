@@ -294,16 +294,10 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> with 
                         // Label bubble above pin
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.18),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                          decoration: AppTheme.glassDecoration(
+                            opacity: 0.94,
+                            borderRadius: 20,
+                            blurRadius: 10,
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -569,11 +563,12 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> with 
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withValues(alpha: 0.95),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 20,
                     offset: const Offset(0, -4),
                   ),

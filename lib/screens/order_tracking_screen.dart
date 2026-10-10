@@ -210,12 +210,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       // Order ID Badge
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 3)),
-                          ],
+                        decoration: AppTheme.glassDecoration(
+                          opacity: 0.92,
+                          borderRadius: 20,
+                          blurRadius: 10,
                         ),
                         child: Row(
                           children: [
@@ -244,11 +242,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 alignment: Alignment.bottomCenter,
                 child: Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
                     boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -6)),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, -6)),
                     ],
                   ),
                   child: SafeArea(
@@ -337,10 +336,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         // Rider Info Card
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF9FAFB),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.lightBorder),
+                          decoration: AppTheme.glassDecoration(
+                            opacity: 0.90,
+                            borderRadius: 16,
+                            blurRadius: 10,
                           ),
                           child: Row(
                             children: [
@@ -396,10 +395,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         // Order Accordion Box
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF9FAFB),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppTheme.lightBorder),
+                          decoration: AppTheme.glassDecoration(
+                            opacity: 0.88,
+                            borderRadius: 14,
+                            blurRadius: 8,
                           ),
                           child: Row(
                             children: [

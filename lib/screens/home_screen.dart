@@ -306,13 +306,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: const Color(0xFFF1F5F9)),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 3)),
-                    ],
+                  decoration: AppTheme.glassDecoration(
+                    opacity: 0.92,
+                    borderRadius: 28,
+                    borderWidth: 1.2,
+                    blurRadius: 12,
                   ),
                   child: Row(
                     children: [
@@ -593,13 +591,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   return Container(
                     margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppTheme.lightBorder),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
-                      ],
+                    decoration: AppTheme.glassDecoration(
+                      opacity: 0.90,
+                      borderRadius: 20,
+                      borderWidth: 1.2,
+                      blurRadius: 14,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -733,8 +729,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF3F4F6),
+                                    color: Colors.white.withValues(alpha: 0.85),
                                     borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.0),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

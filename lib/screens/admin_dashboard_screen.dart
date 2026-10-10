@@ -80,29 +80,33 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             const SizedBox(height: 12),
 
-            ListTile(
-              tileColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              leading: const CircleAvatar(backgroundColor: Colors.blueAccent, child: Icon(Icons.add, color: Colors.white)),
-              title: const Text('Add New Food Item to MySQL', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text('Insert new dish, price, category into MySQL database'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Use XAMPP phpMyAdmin or Admin form to add items directly to MySQL!')),
-                );
-              },
+            Container(
+              decoration: AppTheme.glassDecoration(opacity: 0.90, borderRadius: 14, blurRadius: 10),
+              child: ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                leading: const CircleAvatar(backgroundColor: Colors.blueAccent, child: Icon(Icons.add, color: Colors.white)),
+                title: const Text('Add New Food Item to MySQL', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Insert new dish, price, category into MySQL database'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Use XAMPP phpMyAdmin or Admin form to add items directly to MySQL!')),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 10),
 
-            ListTile(
-              tileColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              leading: const CircleAvatar(backgroundColor: AppTheme.primaryGreen, child: Icon(Icons.store, color: Colors.white)),
-              title: const Text('Manage Restaurants & Drivers', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text('View and edit partner accounts in MySQL'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {},
+            Container(
+              decoration: AppTheme.glassDecoration(opacity: 0.90, borderRadius: 14, blurRadius: 10),
+              child: ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                leading: const CircleAvatar(backgroundColor: AppTheme.primaryGreen, child: Icon(Icons.store, color: Colors.white)),
+                title: const Text('Manage Restaurants & Drivers', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('View and edit partner accounts in MySQL'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {},
+              ),
             ),
           ],
         ),
@@ -114,12 +118,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10),
-          ],
+        decoration: AppTheme.glassDecoration(
+          opacity: 0.90,
+          borderRadius: 16,
+          blurRadius: 10,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
