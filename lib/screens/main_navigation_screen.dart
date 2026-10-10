@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/favorites_provider.dart';
+import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import '../models/user_model.dart';
 import 'home_screen.dart';
@@ -14,6 +16,7 @@ import 'signup_screen.dart';
 import 'restaurant_dashboard_screen.dart';
 import 'driver_dashboard_screen.dart';
 import 'admin_dashboard_screen.dart';
+import 'map_location_picker_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -151,7 +154,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget _buildProfileScreen(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final user = auth.currentUser;
-    final activeOrder = Provider.of<OrderProvider>(context).activeOrder;
 
     if (!auth.isAuthenticated || user == null) {
       return Scaffold(
@@ -230,20 +232,66 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       );
     }
 
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final favProvider = Provider.of<FavoritesProvider>(context);
+    final activeOrder = orderProvider.activeOrder;
+
     return Scaffold(
+      backgroundColor: AppTheme.lightBackground,
       appBar: AppBar(
-        title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 4),
+          child: Text(
+            'My Profile',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 22,
+              color: AppTheme.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, color: AppTheme.primaryGreen),
-            onPressed: () => _showEditProfileDialog(context, auth),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: InkWell(
+              onTap: () => _showEditProfileDialog(context, auth),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.lightBorder),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.edit_outlined, color: AppTheme.primaryGreen, size: 15),
+                    SizedBox(width: 5),
+                    Text(
+                      'Edit',
+                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
           children: [
+            // Live Active Order Tracking Banner if present
             if (activeOrder != null)
               GestureDetector(
                 onTap: () {
@@ -313,44 +361,111 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ),
               ),
 
-            // User Header Card
+            // Premium User Header Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4)),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 18,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundImage: NetworkImage(user.avatarUrl),
+                  Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [AppTheme.primaryGreen, Color(0xFF10B981)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 34,
+                          backgroundImage: NetworkImage(user.avatarUrl),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () => _showEditProfileDialog(context, auth),
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryGreen,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          user.email,
-                          style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-                        ),
-                        const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.phone_outlined, size: 14, color: AppTheme.textMuted),
-                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.textPrimary,
+                                  letterSpacing: -0.3,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.verified, color: Color(0xFF0284C7), size: 16),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            const Icon(Icons.email_outlined, size: 13, color: AppTheme.textMuted),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                user.email,
+                                style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            const Icon(Icons.phone_outlined, size: 13, color: AppTheme.textMuted),
+                            const SizedBox(width: 5),
                             Text(
                               user.phone,
-                              style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                              style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -360,69 +475,106 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 14),
+
+            // Quick Stats Metric Row
+            Row(
+              children: [
+                _buildStatPill('Reward Points', '${user.rewardsPoints}', Icons.stars_rounded, AppTheme.starYellow),
+                const SizedBox(width: 10),
+                _buildStatPill('Orders Placed', '${orderProvider.orders.length}', Icons.receipt_long_rounded, const Color(0xFF3B82F6)),
+                const SizedBox(width: 10),
+                _buildStatPill('Saved Favs', '${favProvider.favoriteIds.length}', Icons.favorite_rounded, const Color(0xFFEF4444)),
+              ],
+            ),
             const SizedBox(height: 16),
 
-            // Rewards Banner Card
+            // VIP Bonchi Rewards Luxury Banner Card
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
-                    const Color(0xFF111827),
-                    const Color(0xFF1F2937),
+                    Color(0xFF0F172A),
+                    Color(0xFF1E293B),
+                    Color(0xFF334155),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4)),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
                 ],
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppTheme.accentAmber.withValues(alpha: 0.2),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                      ),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.stars, color: AppTheme.starYellow, size: 28),
+                    child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Bonchi Rewards',
-                          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                        const Row(
+                          children: [
+                            Text(
+                              'Bonchi Rewards Club',
+                              style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              '• GOLD',
+                              style: TextStyle(color: Color(0xFFFBBF24), fontSize: 11, fontWeight: FontWeight.w900),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${user.rewardsPoints} Points',
+                          '${user.rewardsPoints} Points Available',
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen,
-                      borderRadius: BorderRadius.circular(12),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
                     ),
-                    child: const Text(
-                      'Redeem',
-                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
+                    onPressed: () => _showRedeemDialog(context, user),
+                    child: const Text('Redeem', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
 
-            // Account Options Menu
+            // Section 1: Account & Location
+            _buildSectionHeader('ACCOUNT & LOCATION'),
+            const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -434,73 +586,221 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               child: Column(
                 children: [
                   _buildMenuTile(
-                    icon: Icons.location_on_outlined,
+                    icon: Icons.location_on_rounded,
                     title: 'Delivery Address',
                     subtitle: user.address,
-                    onTap: () => _showEditAddressDialog(context, auth),
+                    iconBgColor: const Color(0xFFDCFCE7),
+                    iconColor: AppTheme.primaryGreen,
+                    onTap: () async {
+                      final res = await Navigator.push<LocationResult>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MapLocationPickerScreen(
+                            initialLatitude: user.latitude,
+                            initialLongitude: user.longitude,
+                            initialAddress: user.address,
+                          ),
+                        ),
+                      );
+                      if (res != null) {
+                        auth.updateProfile(
+                          address: res.formattedAddress,
+                          latitude: res.latitude,
+                          longitude: res.longitude,
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Address updated: ${res.formattedAddress}'),
+                              backgroundColor: AppTheme.primaryGreen,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                        }
+                      }
+                    },
                   ),
-                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  const Divider(height: 1, indent: 64, endIndent: 16),
                   _buildMenuTile(
                     icon: Icons.swap_horiz_rounded,
-                    title: 'Switch User Role (Demo Mode)',
-                    subtitle: 'Current Role: ${user.role.name.toUpperCase()} (Click to change)',
-                    iconColor: AppTheme.primaryOrange,
+                    title: 'Switch User Role (Demo)',
+                    subtitle: 'Switch between Customer, Restaurant & Driver',
+                    iconBgColor: const Color(0xFFFEF3C7),
+                    iconColor: const Color(0xFFD97706),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFDE68A)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            user.role.name.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFB45309),
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          const Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: Color(0xFFB45309)),
+                        ],
+                      ),
+                    ),
                     onTap: () => _showRoleDemoModal(context, auth),
                   ),
-                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  const Divider(height: 1, indent: 64, endIndent: 16),
                   _buildMenuTile(
-                    icon: Icons.payment_outlined,
+                    icon: Icons.payment_rounded,
                     title: 'Payment Methods',
                     subtitle: 'Saved cards & digital wallets',
-                    onTap: () {},
+                    iconBgColor: const Color(0xFFE0E7FF),
+                    iconColor: const Color(0xFF4F46E5),
+                    onTap: () => _showPaymentMethodsSheet(context),
                   ),
-                  const Divider(height: 1, indent: 56, endIndent: 16),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Section 2: Preferences & Help
+            _buildSectionHeader('PREFERENCES & SUPPORT'),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: Column(
+                children: [
                   _buildMenuTile(
-                    icon: Icons.notifications_none_outlined,
+                    icon: Icons.notifications_none_rounded,
                     title: 'Notification Preferences',
                     subtitle: 'Offers, order updates & alerts',
-                    onTap: () {},
+                    iconBgColor: const Color(0xFFECFDF5),
+                    iconColor: AppTheme.primaryGreen,
+                    onTap: () => _showNotificationsSheet(context),
                   ),
-                  const Divider(height: 1, indent: 56, endIndent: 16),
+                  const Divider(height: 1, indent: 64, endIndent: 16),
                   _buildMenuTile(
-                    icon: Icons.help_outline_rounded,
+                    icon: Icons.headset_mic_rounded,
                     title: 'Help & Customer Support',
-                    subtitle: '24/7 Live chat & assistance',
-                    onTap: () {},
+                    subtitle: '24/7 Live chat & hotline assistance',
+                    iconBgColor: const Color(0xFFF0FDF4),
+                    iconColor: const Color(0xFF059669),
+                    onTap: () => _showSupportSheet(context),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Logout Button
-            SizedBox(
+            // Logout Button (Styled with soft red and proper spacing)
+            Container(
               width: double.infinity,
-              height: 50,
-              child: OutlinedButton(
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.red.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppTheme.accentRed, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  foregroundColor: AppTheme.accentRed,
+                  backgroundColor: const Color(0xFFFEF2F2),
+                  side: const BorderSide(color: Color(0xFFFECACA), width: 1.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: () => _showLogoutConfirmation(context, auth),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.logout, color: AppTheme.accentRed, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Log Out',
-                      style: TextStyle(
-                        color: AppTheme.accentRed,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: const Text(
+                  'Log Out of Account',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 14),
+
+            // App Version Footer Tag
+            const Center(
+              child: Text(
+                'Bonchi Food Delivery • v1.0.0 (Build 42)',
+                style: TextStyle(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const SizedBox(height: 110), // Crucial clearance above the floating bottom navigation bar!
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.8,
+            color: AppTheme.textMuted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatPill(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.025),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.textPrimary),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
@@ -513,21 +813,37 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     required String subtitle,
     required VoidCallback onTap,
     Color? iconColor,
+    Color? iconBgColor,
+    Widget? trailing,
   }) {
     final color = iconColor ?? AppTheme.primaryGreen;
+    final bg = iconBgColor ?? color.withValues(alpha: 0.1);
+
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onTap: onTap,
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
+          color: bg,
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Icon(icon, color: color, size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.textMuted),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: AppTheme.textPrimary),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: Text(
+          subtitle,
+          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      trailing: trailing ?? const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textMuted),
     );
   }
 
@@ -578,42 +894,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  void _showEditAddressDialog(BuildContext context, AuthProvider auth) {
-    final user = auth.currentUser;
-    if (user == null) return;
-
-    final addressController = TextEditingController(text: user.address);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delivery Address', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: addressController,
-          maxLines: 2,
-          decoration: const InputDecoration(
-            labelText: 'Street Address & City',
-            prefixIcon: Icon(Icons.location_on_outlined),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen, foregroundColor: Colors.white),
-            onPressed: () {
-              auth.updateProfile(address: addressController.text.trim());
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Address updated!'), backgroundColor: AppTheme.primaryGreen),
-              );
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showLogoutConfirmation(BuildContext context, AuthProvider auth) {
     showDialog(
@@ -694,6 +974,416 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         await auth.login(email: demoEmail, password: 'password123');
         setState(() {});
       },
+    );
+  }
+
+  void _showRedeemDialog(BuildContext context, UserModel user) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.starYellow.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.stars_rounded, color: AppTheme.starYellow, size: 24),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Bonchi Rewards Club', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                    Text('Available Balance: ${user.rewardsPoints} Points', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            const Text('Available Rewards & Vouchers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textSecondary)),
+            const SizedBox(height: 10),
+            _buildVoucherItem(
+              title: 'LKR 500 Discount Coupon',
+              code: 'BONCHI500',
+              points: 150,
+              userPoints: user.rewardsPoints,
+              icon: Icons.local_offer_rounded,
+              color: AppTheme.primaryGreen,
+              onRedeem: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Coupon BONCHI500 redeemed! Applied to your next order.'),
+                    backgroundColor: AppTheme.primaryGreen,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _buildVoucherItem(
+              title: 'Free Delivery on 3 Orders',
+              code: 'FREESHIP3',
+              points: 100,
+              userPoints: user.rewardsPoints,
+              icon: Icons.two_wheeler_rounded,
+              color: const Color(0xFF3B82F6),
+              onRedeem: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Free delivery perk activated!'),
+                    backgroundColor: AppTheme.primaryGreen,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _buildVoucherItem(
+              title: 'Free Garlic Bread with Meal',
+              code: 'FREEGARLIC',
+              points: 75,
+              userPoints: user.rewardsPoints,
+              icon: Icons.fastfood_rounded,
+              color: const Color(0xFFF59E0B),
+              onRedeem: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Voucher FREEGARLIC added to your checkout!'),
+                    backgroundColor: AppTheme.primaryGreen,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVoucherItem({
+    required String title,
+    required String code,
+    required int points,
+    required int userPoints,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onRedeem,
+  }) {
+    final canRedeem = userPoints >= points;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                const SizedBox(height: 2),
+                Text('$points Points • Code: $code', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: canRedeem ? color : Colors.grey.shade400,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            onPressed: canRedeem ? onRedeem : null,
+            child: Text(canRedeem ? 'Claim' : 'Locked', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentMethodsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Payment Methods', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text('Manage saved cards and payment preferences', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+            const SizedBox(height: 16),
+            _buildPaymentOptionTile(
+              icon: Icons.credit_card,
+              title: 'Commercial Bank Visa',
+              subtitle: '•••• •••• •••• 4242 (Default)',
+              badge: 'PRIMARY',
+            ),
+            const SizedBox(height: 10),
+            _buildPaymentOptionTile(
+              icon: Icons.apple,
+              title: 'Apple Pay',
+              subtitle: 'Connected & Verified',
+              badge: 'ACTIVE',
+            ),
+            const SizedBox(height: 10),
+            _buildPaymentOptionTile(
+              icon: Icons.payments_outlined,
+              title: 'Cash on Delivery',
+              subtitle: 'Pay rider in cash upon receiving food',
+              badge: 'DEFAULT',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentOptionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String badge,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Icon(icon, size: 22, color: AppTheme.textPrimary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              badge,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showNotificationsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Notification Preferences', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('Choose alerts you want to receive from Bonchi', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: AppTheme.primaryGreen,
+                  title: const Text('Live Order Tracking Alerts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Instant updates when rider picks up or arrives', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  value: true,
+                  onChanged: (val) {},
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: AppTheme.primaryGreen,
+                  title: const Text('Exclusive Food Promos & Deals', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Weekly meal discounts and promo code alerts', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  value: true,
+                  onChanged: (val) {},
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: AppTheme.primaryGreen,
+                  title: const Text('SMS Confirmation Messages', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('OTP login and receipt delivery via SMS', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  value: true,
+                  onChanged: (val) {},
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showSupportSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('24/7 Customer Care & Support', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text('Our dedicated support team in Colombo is here to help', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+            const SizedBox(height: 16),
+            ListTile(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: const Color(0xFFF8FAFC),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFDCFCE7),
+                child: Icon(Icons.support_agent_rounded, color: AppTheme.primaryGreen),
+              ),
+              title: const Text('Live Chat with Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text('Average response time: under 2 mins', style: TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Starting live chat session...'), backgroundColor: AppTheme.primaryGreen),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: const Color(0xFFF8FAFC),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFE0E7FF),
+                child: Icon(Icons.call_rounded, color: Color(0xFF4F46E5)),
+              ),
+              title: const Text('Call Customer Hotline', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text('+94 11 234 5678 (Toll Free in Sri Lanka)', style: TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+              onTap: () => Navigator.pop(ctx),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: const Color(0xFFF8FAFC),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFFEF3C7),
+                child: Icon(Icons.email_outlined, color: Color(0xFFD97706)),
+              ),
+              title: const Text('Email Support Team', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text('support@bonchi.lk', style: TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+              onTap: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
