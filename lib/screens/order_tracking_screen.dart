@@ -12,6 +12,7 @@ import '../services/location_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import 'order_chat_screen.dart';
+import 'digital_receipt_screen.dart';
 
 class _RiderRouteProgress {
   final LatLng currentPosition;
@@ -495,10 +496,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
                             ),
                           ),
 
-                          const CircleAvatar(
+                          CircleAvatar(
                             backgroundColor: Colors.white,
                             radius: 18,
-                            child: Icon(Icons.share_outlined, color: AppTheme.textPrimary, size: 18),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.receipt_long_rounded, color: AppTheme.primaryGreen, size: 18),
+                              tooltip: 'Digital Tax Invoice',
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => DigitalReceiptScreen(order: freshOrder)),
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -1060,14 +1071,19 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
                               const SizedBox(width: 10),
                               OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppTheme.textPrimary,
-                                  side: const BorderSide(color: AppTheme.lightBorder),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  foregroundColor: AppTheme.primaryGreen,
+                                  side: const BorderSide(color: AppTheme.primaryGreen, width: 1.2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                 ),
-                                onPressed: () {},
-                                icon: const Icon(Icons.help_outline, size: 16),
-                                label: const Text('Help', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => DigitalReceiptScreen(order: freshOrder)),
+                                  );
+                                },
+                                icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
+                                label: const Text('Receipt 📄', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                               ),
                             ],
                           ),

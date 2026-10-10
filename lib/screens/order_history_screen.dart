@@ -5,8 +5,8 @@ import '../providers/order_provider.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
 import 'order_tracking_screen.dart';
-import 'cart_screen.dart';
 import 'checkout_screen.dart';
+import 'digital_receipt_screen.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -359,8 +359,20 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () => _showReceiptSheet(context, order),
-                        child: const Text('Receipt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => DigitalReceiptScreen(order: order)),
+                          );
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.receipt_long_rounded, size: 14, color: AppTheme.primaryGreen),
+                            SizedBox(width: 4),
+                            Text('Receipt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                          ],
+                        ),
                       ),
                     ),
 
@@ -391,119 +403,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showReceiptSheet(BuildContext context, OrderModel order) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Order Receipt', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    Text(order.orderId, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const Divider(height: 20),
-            Text('Restaurant: ${order.restaurantName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-            Text('Delivery to: ${order.deliveryAddress}', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-            const SizedBox(height: 12),
-            ...order.items.map((item) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${item.quantity}x ${item.foodItem.name}', style: const TextStyle(fontSize: 13)),
-                      Text(_formatLkr(item.totalPriceLkr), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                    ],
-                  ),
-                )),
-            const Divider(height: 18),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Subtotal', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-                Text(_formatLkr(order.subtotalLkr), style: const TextStyle(fontSize: 13)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Delivery Fee', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-                Text(order.deliveryFeeLkr == 0 ? 'FREE' : _formatLkr(order.deliveryFeeLkr), style: const TextStyle(fontSize: 13)),
-              ],
-            ),
-            if (order.discountLkr > 0) ...[
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Discount Promo', style: TextStyle(color: AppTheme.primaryGreen, fontSize: 13, fontWeight: FontWeight.w600)),
-                  Text('- ${_formatLkr(order.discountLkr)}', style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ],
-            const Divider(height: 18),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Total Paid', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                Text(_formatLkr(order.grandTotalLkr), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppTheme.primaryGreen)),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  final cart = Provider.of<CartProvider>(context, listen: false);
-                  cart.reorderItems(order.items);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
-                },
-                icon: const Icon(Icons.replay_rounded),
-                label: const Text('Re-Order These Items Now ⚡', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

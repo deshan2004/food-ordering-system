@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:food_ordering_system/models/loyalty_model.dart';
 import 'package:food_ordering_system/models/food_item.dart';
 import 'package:food_ordering_system/providers/loyalty_provider.dart';
 import 'package:food_ordering_system/providers/cart_provider.dart';
