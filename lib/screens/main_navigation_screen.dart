@@ -1603,75 +1603,117 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _showLanguageModal(BuildContext context, SettingsProvider settings) {
+    final isDark = settings.isDarkMode;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Select Language / භාෂාව තෝරන්න',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Choose your preferred language for menus and ordering',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
-            ),
-            const SizedBox(height: 18),
-            ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(
-                  color: !settings.isSinhala ? AppTheme.primaryGreen : Colors.grey.shade200,
-                  width: !settings.isSinhala ? 2 : 1,
+      builder: (ctx) => Material(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-              tileColor: !settings.isSinhala ? const Color(0xFFECFDF5) : Colors.transparent,
-              leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
-              title: const Text('English (Default)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: const Text('All titles and menus in English', style: TextStyle(fontSize: 12)),
-              trailing: !settings.isSinhala ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen) : null,
-              onTap: () {
-                settings.setLanguage('en');
-                Navigator.pop(ctx);
-              },
-            ),
-            const SizedBox(height: 10),
-            ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(
-                  color: settings.isSinhala ? AppTheme.primaryGreen : Colors.grey.shade200,
-                  width: settings.isSinhala ? 2 : 1,
+              const SizedBox(height: 16),
+              Text(
+                'Select Language / භාෂාව තෝරන්න',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
                 ),
               ),
-              tileColor: settings.isSinhala ? const Color(0xFFECFDF5) : Colors.transparent,
-              leading: const Text('🇱🇰', style: TextStyle(fontSize: 24)),
-              title: const Text('සිංහල (Sinhala)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: const Text('සියලුම ආහාර සහ මෙනු සිංහලෙන්', style: TextStyle(fontSize: 12)),
-              trailing: settings.isSinhala ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen) : null,
-              onTap: () {
-                settings.setLanguage('si');
-                Navigator.pop(ctx);
-              },
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'Choose your preferred language for menus and ordering',
+                style: TextStyle(
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                  fontSize: 12.5,
+                ),
+              ),
+              const SizedBox(height: 18),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(
+                    color: !settings.isSinhala ? AppTheme.primaryGreen : (isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+                    width: !settings.isSinhala ? 2 : 1,
+                  ),
+                ),
+                tileColor: !settings.isSinhala
+                    ? (isDark ? AppTheme.primaryGreen.withValues(alpha: 0.15) : const Color(0xFFECFDF5))
+                    : Colors.transparent,
+                leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
+                title: Text(
+                  'English (Default)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  'All titles and menus in English',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                  ),
+                ),
+                trailing: !settings.isSinhala ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen) : null,
+                onTap: () {
+                  settings.setLanguage('en');
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(
+                    color: settings.isSinhala ? AppTheme.primaryGreen : (isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+                    width: settings.isSinhala ? 2 : 1,
+                  ),
+                ),
+                tileColor: settings.isSinhala
+                    ? (isDark ? AppTheme.primaryGreen.withValues(alpha: 0.15) : const Color(0xFFECFDF5))
+                    : Colors.transparent,
+                leading: const Text('🇱🇰', style: TextStyle(fontSize: 24)),
+                title: Text(
+                  'සිංහල (Sinhala)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  'සියලුම ආහාර සහ මෙනු සිංහලෙන්',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                  ),
+                ),
+                trailing: settings.isSinhala ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen) : null,
+                onTap: () {
+                  settings.setLanguage('si');
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
