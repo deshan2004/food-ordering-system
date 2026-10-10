@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/coupon_sheet.dart';
 import 'checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
@@ -163,12 +164,34 @@ class _CartScreenState extends State<CartScreen> {
                     child: Column(
                       children: [
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Have a coupon?',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                            ),
+                            TextButton.icon(
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                              ),
+                              onPressed: () => showCouponsBottomSheet(context),
+                              icon: const Icon(Icons.confirmation_num_outlined, size: 15, color: AppTheme.primaryGreen),
+                              label: const Text(
+                                'View Coupons 🎟️',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: AppTheme.primaryGreen),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
                           children: [
                             Expanded(
                               child: TextField(
                                 controller: _promoController,
                                 decoration: InputDecoration(
-                                  hintText: 'Promo code (e.g. MONSOON20)',
+                                  hintText: 'Enter code (e.g. BONCHI50)',
                                   isDense: true,
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                   filled: true,
@@ -206,7 +229,10 @@ class _CartScreenState extends State<CartScreen> {
                                 label: Text('Promo: ${cart.promoCode} (-${_formatLkr(cart.discountLkr)})'),
                                 backgroundColor: const Color(0xFFECFDF5),
                                 deleteIcon: const Icon(Icons.close, size: 14),
-                                onDeleted: () => cart.removePromoCode(),
+                                onDeleted: () {
+                                  cart.removePromoCode();
+                                  _promoController.clear();
+                                },
                                 labelStyle: const TextStyle(color: AppTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
                               ),
                             ],

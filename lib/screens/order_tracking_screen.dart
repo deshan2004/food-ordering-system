@@ -366,10 +366,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 2),
                           Text(
-                            'Estimated Arrival: ${freshOrder.estimatedArrivalTime} (On Time)',
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                            freshOrder.deliveryTimeOption == 'ASAP (20-25 min)'
+                                ? 'Estimated Arrival: ${freshOrder.estimatedArrivalTime} (On Time)'
+                                : 'Scheduled Delivery: ${freshOrder.deliveryTimeOption}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: freshOrder.deliveryTimeOption == 'ASAP (20-25 min)' ? AppTheme.textSecondary : AppTheme.primaryGreen,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
 

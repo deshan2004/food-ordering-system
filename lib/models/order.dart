@@ -27,6 +27,7 @@ class OrderModel {
   final String customerPhone;
   final String paymentMethod;
   final DateTime orderTime;
+  final String deliveryTimeOption;
   OrderStatus status;
   int estimatedMinsLeft;
   String estimatedArrivalTime;
@@ -61,6 +62,7 @@ class OrderModel {
     this.customerPhone = '0781776315',
     this.paymentMethod = 'Cash on Delivery',
     required this.orderTime,
+    this.deliveryTimeOption = 'ASAP (20-25 min)',
     this.status = OrderStatus.onTheWay,
     this.estimatedMinsLeft = 12,
     this.estimatedArrivalTime = '8:42 PM',

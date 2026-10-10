@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 import '../models/cart_item.dart';
 import '../models/food_item.dart';
+import '../models/promo_coupon.dart';
 
 class CartProvider with ChangeNotifier {
   final List<CartItem> _items = [];
   String _promoCode = '';
   double _promoDiscountLkr = 0.0;
   String? _promoError;
+  PromoCoupon? _appliedCoupon;
 
   List<CartItem> get items => List.unmodifiable(_items);
 
@@ -20,6 +22,7 @@ class CartProvider with ChangeNotifier {
 
   double get deliveryFeeLkr {
     if (_items.isEmpty) return 0.0;
+    if (_appliedCoupon?.type == DiscountType.freeDelivery) return 0.0;
     return subtotalLkr >= 3500.0 ? 0.0 : 180.0;
   }
 
@@ -32,6 +35,8 @@ class CartProvider with ChangeNotifier {
 
   String get promoCode => _promoCode;
   String? get promoError => _promoError;
+  PromoCoupon? get appliedCoupon => _appliedCoupon;
+  PromoCoupon? get promoCoupon => _appliedCoupon;
 
   void addToCart({
     required FoodItem foodItem,
@@ -82,24 +87,38 @@ class CartProvider with ChangeNotifier {
     String cleanCode = code.trim().toUpperCase();
     _promoError = null;
 
-    if (cleanCode == 'MONSOON20') {
-      _promoCode = cleanCode;
-      _promoDiscountLkr = subtotalLkr * 0.20;
-      notifyListeners();
-      return true;
-    } else if (cleanCode == 'BONCHI500') {
-      _promoCode = cleanCode;
-      _promoDiscountLkr = 500.0;
-      notifyListeners();
-      return true;
+    final match = PromoCoupon.availableCoupons.cast<PromoCoupon?>().firstWhere(
+          (c) => c?.code == cleanCode,
+          orElse: () => null,
+        );
+
+    if (match != null) {
+      return applyCoupon(match);
     } else {
-      _promoError = 'Invalid code. Try MONSOON20 or BONCHI500';
+      _promoError = 'Invalid promo code. Tap "Offers" to view active coupons!';
       notifyListeners();
       return false;
     }
   }
 
+  bool applyCoupon(PromoCoupon coupon) {
+    _promoError = null;
+
+    if (subtotalLkr < coupon.minOrderLkr) {
+      _promoError = 'Min. order of Rs. ${coupon.minOrderLkr.toInt()} required for this coupon';
+      notifyListeners();
+      return false;
+    }
+
+    _appliedCoupon = coupon;
+    _promoCode = coupon.code;
+    _promoDiscountLkr = coupon.calculateDiscount(subtotalLkr, subtotalLkr >= 3500.0 ? 0.0 : 180.0);
+    notifyListeners();
+    return true;
+  }
+
   void removePromoCode() {
+    _appliedCoupon = null;
     _promoCode = '';
     _promoDiscountLkr = 0.0;
     _promoError = null;
@@ -107,15 +126,18 @@ class CartProvider with ChangeNotifier {
   }
 
   void _recalculatePromo() {
-    if (_promoCode == 'MONSOON20') {
-      _promoDiscountLkr = subtotalLkr * 0.20;
-    } else if (_promoCode == 'BONCHI500') {
-      _promoDiscountLkr = subtotalLkr >= 500.0 ? 500.0 : subtotalLkr;
+    if (_appliedCoupon != null) {
+      if (subtotalLkr < _appliedCoupon!.minOrderLkr) {
+        removePromoCode();
+      } else {
+        _promoDiscountLkr = _appliedCoupon!.calculateDiscount(subtotalLkr, deliveryFeeLkr);
+      }
     }
   }
 
   void clearCart() {
     _items.clear();
+    _appliedCoupon = null;
     _promoCode = '';
     _promoDiscountLkr = 0.0;
     _promoError = null;

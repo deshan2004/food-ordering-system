@@ -71,6 +71,7 @@ class OrderProvider with ChangeNotifier {
     String? paymentMethod,
     double? destinationLatitude,
     double? destinationLongitude,
+    String? deliveryTimeOption,
   }) {
     final newOrder = OrderModel(
       orderId: '#BC-${(1000 + DateTime.now().millisecond % 9000).toString()}',
@@ -83,6 +84,7 @@ class OrderProvider with ChangeNotifier {
       customerName: customerName ?? 'Deshan Siriwardhana',
       customerPhone: customerPhone ?? '0781776315',
       paymentMethod: paymentMethod ?? 'Cash on Delivery',
+      deliveryTimeOption: deliveryTimeOption ?? 'ASAP (20-25 min)',
       destinationLatitude: destinationLatitude,
       destinationLongitude: destinationLongitude,
       distanceKm: 3.5,
