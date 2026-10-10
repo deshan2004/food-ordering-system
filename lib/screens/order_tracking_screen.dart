@@ -11,8 +11,9 @@ import '../theme/app_theme.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final OrderModel order;
+  final VoidCallback? onBackToHome;
 
-  const OrderTrackingScreen({super.key, required this.order});
+  const OrderTrackingScreen({super.key, required this.order, this.onBackToHome});
 
   @override
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
@@ -204,7 +205,13 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           padding: EdgeInsets.zero,
                           icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.textPrimary, size: 16),
                           onPressed: () {
-                            Navigator.popUntil(context, (route) => route.isFirst);
+                            if (widget.onBackToHome != null) {
+                              widget.onBackToHome!();
+                            } else if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.popUntil(context, (route) => route.isFirst);
+                            }
                           },
                         ),
                       ),
@@ -571,7 +578,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),
                                   onPressed: () {
-                                    if (Navigator.canPop(context)) {
+                                    if (widget.onBackToHome != null) {
+                                      widget.onBackToHome!();
+                                    } else if (Navigator.canPop(context)) {
                                       Navigator.pop(context);
                                     } else {
                                       Navigator.popUntil(context, (route) => route.isFirst);

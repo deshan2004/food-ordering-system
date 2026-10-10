@@ -4,39 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/order.dart';
 import '../models/cart_item.dart';
-import '../services/food_service.dart';
 
 class OrderProvider with ChangeNotifier {
-  late final List<OrderModel> _orders;
+  final List<OrderModel> _orders = [];
 
   OrderProvider() {
-    // Initial mock order as shown in Bonchi screenshot 3
-    final sampleItem = CartItem(
-      id: 'init_1',
-      foodItem: FoodService.mockFoodItems.first,
-      selectedSpiceLevel: FoodService.bonchiSpiceOptions[2], // Nai Miris Hot
-      quantity: 1,
-    );
-
-    _orders = [
-      OrderModel(
-        orderId: '#BC-8492',
-        items: [sampleItem],
-        subtotalLkr: 2600.0,
-        deliveryFeeLkr: 150.0,
-        discountLkr: 0.0,
-        grandTotalLkr: 2750.0,
-        deliveryAddress: 'Your Location • 42/1, Flower Road, Col 07',
-        restaurantAddress: 'Pilawaos Night Kottu • Colombo 03',
-        riderName: 'Sumith Perera',
-        riderRating: '4.9',
-        riderVehicle: 'ABF-8842  Red Tuk-Tuk',
-        orderTime: DateTime.now().subtract(const Duration(minutes: 10)),
-        status: OrderStatus.onTheWay,
-        estimatedMinsLeft: 12,
-        estimatedArrivalTime: '8:42 PM',
-      ),
-    ];
+    // Orders list starts empty. Only populated when an order is actually placed by the user.
   }
 
   List<OrderModel> get orders => List.unmodifiable(_orders);

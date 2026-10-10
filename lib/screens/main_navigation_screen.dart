@@ -65,7 +65,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       const FavoritesScreen(),
       (cart.totalItemCount == 0 && activeOrder != null)
-          ? OrderTrackingScreen(order: activeOrder)
+          ? OrderTrackingScreen(
+              order: activeOrder,
+              onBackToHome: () {
+                setState(() {
+                  _currentIndex = 0;
+                });
+              },
+            )
           : CartScreen(
               onExploreTap: () {
                 setState(() {
