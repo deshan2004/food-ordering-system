@@ -10,6 +10,8 @@ import '../theme/app_theme.dart';
 import 'food_detail_screen.dart';
 import 'login_screen.dart';
 import 'map_location_picker_screen.dart';
+import 'dart:ui';
+import '../widgets/glass_box.dart';
 import '../widgets/avatar_image_helper.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -68,8 +70,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
-      body: SafeArea(
-        child: RefreshIndicator(
+      body: GlassAmbientBackground(
+        child: SafeArea(
+          child: RefreshIndicator(
           color: AppTheme.primaryGreen,
           onRefresh: () async {
             await _loadFoodItems();
@@ -117,38 +120,53 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 
-                    // Location Selector Pill (Dynamic Live Address & Tap Modal)
                     Flexible(
                       child: GestureDetector(
                         onTap: () => _showLocationPickerModal(context, authProvider),
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEEF2FF),
+                          child: ClipRRect(
                             borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.location_on, color: AppTheme.primaryGreen, size: 16),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  currentUser?.address.contains(',') == true
-                                      ? currentUser!.address.split(',').last.trim()
-                                      : (currentUser?.address ?? 'Colombo 03'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 13,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.70),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.03),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.location_on, color: AppTheme.primaryGreen, size: 16),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        currentUser?.address.contains(',') == true
+                                            ? currentUser!.address.split(',').last.trim()
+                                            : (currentUser?.address ?? 'Colombo 03'),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 13,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textPrimary, size: 16),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(width: 2),
-                              const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textPrimary, size: 16),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -258,40 +276,54 @@ class _HomeScreenState extends State<HomeScreen> {
                           widget.onNavigateTab(3);
                         }
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFEAD5), // Soft peach orange
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.local_fire_department_rounded, color: Color(0xFFC2410C), size: 20),
-                            const SizedBox(width: 6),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  currentUser != null ? '${currentUser.rewardsPoints}' : 'Log In',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 14,
-                                    color: Color(0xFF431407),
-                                    height: 1.0,
-                                  ),
-                                ),
-                                Text(
-                                  currentUser != null ? 'Pts' : 'Points',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                    color: Color(0xFF431407),
-                                    height: 1.1,
-                                  ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFEAD5).withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.orange.withValues(alpha: 0.08),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
-                          ],
+                            child: Row(
+                              children: [
+                                const Icon(Icons.local_fire_department_rounded, color: Color(0xFFC2410C), size: 20),
+                                const SizedBox(width: 6),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      currentUser != null ? '${currentUser.rewardsPoints}' : 'Log In',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 14,
+                                        color: Color(0xFF431407),
+                                        height: 1.0,
+                                      ),
+                                    ),
+                                    Text(
+                                      currentUser != null ? 'Pts' : 'Points',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Color(0xFF431407),
+                                        height: 1.1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -300,22 +332,31 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Search Bar with Mic & Filter Button (with badge dot)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: AppTheme.glassDecoration(
-                    opacity: 0.92,
-                    borderRadius: 28,
-                    borderWidth: 1.2,
-                    blurRadius: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search, color: Color(0xFF64748B), size: 22),
-                      const SizedBox(width: 10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.70),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.search, color: Color(0xFF64748B), size: 22),
+                          const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
                           controller: _searchController,
@@ -367,6 +408,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+          ),
+        ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
@@ -406,48 +449,67 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFFECFDF5) : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected ? AppTheme.primaryGreen : AppTheme.lightBorder,
-                            width: isSelected ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(cat['icon'] as String, style: const TextStyle(fontSize: 18)),
-                                if ((cat['badge'] as String).isNotEmpty) ...[
-                                  const SizedBox(width: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: (cat['badge'] as String).contains('Hot') ? AppTheme.accentRed : AppTheme.accentAmber,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      cat['badge'] as String,
-                                      style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? const Color(0xFFECFDF5).withValues(alpha: 0.88)
+                                    : Colors.white.withValues(alpha: 0.68),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppTheme.primaryGreen
+                                      : Colors.white.withValues(alpha: 0.95),
+                                  width: isSelected ? 1.8 : 1.4,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(cat['icon'] as String, style: const TextStyle(fontSize: 18)),
+                                      if ((cat['badge'] as String).isNotEmpty) ...[
+                                        const SizedBox(width: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: (cat['badge'] as String).contains('Hot') ? AppTheme.accentRed : AppTheme.accentAmber,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            cat['badge'] as String,
+                                            style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    cat['name'] as String,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                      color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
                                     ),
                                   ),
                                 ],
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              cat['name'] as String,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     );
@@ -591,15 +653,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   return Container(
                     margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                    decoration: AppTheme.glassDecoration(
-                      opacity: 0.90,
-                      borderRadius: 20,
-                      borderWidth: 1.2,
-                      blurRadius: 14,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.95),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+                                blurRadius: 20,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                         // Card Header Image with status pill & heart
                         Stack(
                           children: [
@@ -788,8 +864,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                  );
-                },
+                  ),
+                ),
+              ),
+            );
+          },
                 childCount: displayedItems.length,
               ),
             ),
@@ -837,6 +916,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    ),
     ),
     );
   }

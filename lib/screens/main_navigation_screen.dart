@@ -18,6 +18,8 @@ import 'driver_dashboard_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'map_location_picker_screen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:ui';
+import '../widgets/glass_box.dart';
 import '../widgets/avatar_image_helper.dart';
 import '../widgets/payment_sheets.dart';
 
@@ -75,37 +77,46 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppTheme.lightBackground,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
+      body: GlassAmbientBackground(
+        child: IndexedStack(
+          index: _currentIndex,
+          children: screens,
+        ),
       ),
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.94),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            backgroundColor: Colors.white.withValues(alpha: 0.85),
-            selectedItemColor: AppTheme.primaryGreen,
-            unselectedItemColor: AppTheme.textSecondary,
-            selectedFontSize: 11,
-            unselectedFontSize: 11,
-            type: BottomNavigationBarType.fixed,
-            elevation: 0,
+          borderRadius: BorderRadius.circular(32),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.72),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: (index) => setState(() => _currentIndex = index),
+                backgroundColor: Colors.transparent,
+                selectedItemColor: AppTheme.primaryGreen,
+                unselectedItemColor: AppTheme.textSecondary,
+                selectedFontSize: 11,
+                unselectedFontSize: 11,
+                type: BottomNavigationBarType.fixed,
+                elevation: 0,
             items: [
               BottomNavigationBarItem(
                 icon: Column(
@@ -156,8 +167,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildProfileScreen(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
