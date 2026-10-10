@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
+import '../services/api_config.dart';
 
 class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser = UserModel(
@@ -24,15 +24,9 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  static String get host {
-    if (!kIsWeb && Platform.isAndroid) {
-      return '10.0.2.2';
-    }
-    return 'localhost';
-  }
-
-  static String get loginUrl => 'http://$host/food_api/login.php';
-  static String get registerUrl => 'http://$host/food_api/register.php';
+  static String get loginUrl => ApiConfig.loginUrl;
+  static String get registerUrl => ApiConfig.registerUrl;
+  static String get updateProfileUrl => ApiConfig.updateProfileUrl;
 
   void clearError() {
     _errorMessage = null;
@@ -220,7 +214,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void updateProfile({
+  Future<void> updateProfile({
     String? name,
     String? phone,
     String? address,
@@ -228,9 +222,9 @@ class AuthProvider extends ChangeNotifier {
     double? longitude,
     String? avatarUrl,
     UserRole? role,
-  }) {
+  }) async {
     if (_currentUser != null) {
-      _currentUser = _currentUser!.copyWith(
+      final updatedUser = _currentUser!.copyWith(
         name: name,
         phone: phone,
         address: address,
@@ -239,7 +233,26 @@ class AuthProvider extends ChangeNotifier {
         avatarUrl: avatarUrl,
         role: role,
       );
+      _currentUser = updatedUser;
       notifyListeners();
+
+      // Async save to MySQL database
+      try {
+        await http.post(
+          Uri.parse(ApiConfig.updateProfileUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'id': updatedUser.id,
+            'email': updatedUser.email,
+            'name': updatedUser.name,
+            'phone': updatedUser.phone,
+            'address': updatedUser.address,
+            'avatar_url': updatedUser.avatarUrl,
+          }),
+        ).timeout(const Duration(seconds: 4));
+      } catch (e) {
+        debugPrint('MySQL Profile Sync Note: $e');
+      }
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/order.dart';
 import '../models/cart_item.dart';
 import '../services/notification_service.dart';
+import '../services/api_config.dart';
 
 class OrderProvider with ChangeNotifier {
   final List<OrderModel> _orders = [];
@@ -190,7 +191,7 @@ class OrderProvider with ChangeNotifier {
       };
 
       await http.post(
-        Uri.parse('http://localhost/food_api/place_order.php'),
+        Uri.parse(ApiConfig.placeOrderUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );

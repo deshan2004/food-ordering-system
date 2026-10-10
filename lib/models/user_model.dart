@@ -84,7 +84,9 @@ class UserModel {
       role: parsedRole,
       avatarUrl: (json['avatarUrl']?.toString().isNotEmpty == true)
           ? json['avatarUrl']
-          : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+          : (json['avatar_url']?.toString().isNotEmpty == true)
+              ? json['avatar_url']
+              : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
       rewardsPoints: int.tryParse(json['rewardsPoints']?.toString() ?? '200') ?? 200,
       address: json['address']?.toString() ?? 'No. 45, Galle Road, Colombo 03',
       latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,

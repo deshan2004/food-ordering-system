@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/food_item.dart';
 import '../models/restaurant_model.dart';
+import 'api_config.dart';
 
 class FoodService {
   // Country & Global Cuisines
@@ -686,14 +686,7 @@ class FoodService {
     }).toList();
   }
 
-  static String get host {
-    if (!kIsWeb && Platform.isAndroid) {
-      return '10.0.2.2';
-    }
-    return 'localhost';
-  }
-
-  static String get apiUrl => 'http://$host/food_api/get_foods.php';
+  static String get apiUrl => ApiConfig.getFoodsUrl;
 
   static Future<List<FoodItem>> fetchFoodItemsFromApi() async {
     try {
