@@ -646,38 +646,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       }
                     },
                   ),
-                  const Divider(height: 1, indent: 64, endIndent: 16),
-                  _buildMenuTile(
-                    icon: Icons.swap_horiz_rounded,
-                    title: 'Switch User Role (Demo)',
-                    subtitle: 'Switch between Customer, Restaurant & Driver',
-                    iconBgColor: const Color(0xFFFEF3C7),
-                    iconColor: const Color(0xFFD97706),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFDE68A)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            user.role.name.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFB45309),
-                            ),
-                          ),
-                          const SizedBox(width: 3),
-                          const Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: Color(0xFFB45309)),
-                        ],
-                      ),
-                    ),
-                    onTap: () => _showRoleDemoModal(context, auth),
-                  ),
+
                   const Divider(height: 1, indent: 64, endIndent: 16),
                   _buildMenuTile(
                     icon: Icons.payment_rounded,
@@ -986,76 +955,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  void _showRoleDemoModal(BuildContext context, AuthProvider auth) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'Select User Role (MySQL Demo)',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Easily test Customer, Restaurant, Driver, and Admin interfaces:',
-                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              _buildRoleOption(ctx, auth, 'Customer UI', 'Browse & order food', Icons.shopping_bag, UserRole.customer),
-              _buildRoleOption(ctx, auth, 'Restaurant Manager', 'View live orders & kitchen status', Icons.restaurant, UserRole.restaurant),
-              _buildRoleOption(ctx, auth, 'Delivery Driver (Rider)', 'Pickup & deliver orders', Icons.two_wheeler, UserRole.driver),
-              _buildRoleOption(ctx, auth, 'Super Admin', 'Manage MySQL food items & sales', Icons.admin_panel_settings, UserRole.admin),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildRoleOption(BuildContext ctx, AuthProvider auth, String title, String subtitle, IconData icon, UserRole role) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
-        child: Icon(icon, color: AppTheme.primaryGreen),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      onTap: () async {
-        Navigator.pop(ctx);
-        if (auth.currentUser != null) {
-          auth.setRole(role);
-        } else {
-          String demoEmail = 'customer@bonchi.lk';
-          if (role == UserRole.restaurant) demoEmail = 'restaurant@bonchi.lk';
-          if (role == UserRole.driver) demoEmail = 'driver@bonchi.lk';
-          if (role == UserRole.admin) demoEmail = 'admin@bonchi.lk';
-          await auth.login(email: demoEmail, password: 'password123');
-        }
-        setState(() {});
-      },
-    );
-  }
 
   void _showRedeemDialog(BuildContext context, UserModel user) {
     showModalBottomSheet(
