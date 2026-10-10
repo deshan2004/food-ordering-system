@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/chat_message.dart';
+import '../services/notification_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   final Map<String, List<ChatMessage>> _conversationMap = {};
@@ -106,6 +107,13 @@ class ChatProvider extends ChangeNotifier {
           timestamp: DateTime.now(),
           isCustomer: false,
         ));
+
+        // Show lockscreen / system notification for rider message
+        NotificationService.instance.showChatNotification(
+          senderName: rName,
+          message: replyText,
+          orderId: orderId,
+        );
       } else {
         final kName = recipientName ?? 'Kitchen Team';
         if (queryLower.contains('spicy') || queryLower.contains('chilli') || queryLower.contains('pepper')) {
@@ -127,6 +135,13 @@ class ChatProvider extends ChangeNotifier {
           timestamp: DateTime.now(),
           isCustomer: false,
         ));
+
+        // Show lockscreen / system notification for kitchen message
+        NotificationService.instance.showChatNotification(
+          senderName: kName,
+          message: replyText,
+          orderId: orderId,
+        );
       }
 
       notifyListeners();

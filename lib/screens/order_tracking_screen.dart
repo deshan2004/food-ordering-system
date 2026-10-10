@@ -383,7 +383,63 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         // Step Timeline Progress Bar
                         _buildStepProgressBar(context, freshOrder),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
+
+                        // Lock Screen & Audio Alerts Indicator + Simulator
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF059669).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.notifications_active_rounded, color: AppTheme.primaryGreen, size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Lock Screen & Audio Alerts Active 🔔',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: AppTheme.primaryGreen),
+                                    ),
+                                    Text(
+                                      'You will receive sound notifications even if screen is locked or app is minimized.',
+                                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (freshOrder.status != OrderStatus.delivered) ...[
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    backgroundColor: AppTheme.primaryGreen,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: () {
+                                    // Progress to next stage and trigger lockscreen notification
+                                    if (freshOrder.status == OrderStatus.confirmed) {
+                                      orderProvider.updateOrderStatus(freshOrder.orderId, OrderStatus.prepped);
+                                    } else if (freshOrder.status == OrderStatus.prepped) {
+                                      orderProvider.updateOrderStatus(freshOrder.orderId, OrderStatus.onTheWay);
+                                    } else if (freshOrder.status == OrderStatus.onTheWay) {
+                                      orderProvider.updateOrderStatus(freshOrder.orderId, OrderStatus.delivered);
+                                    }
+                                  },
+                                  child: const Text('Next Stage ⏩', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
 
                         // Rider Info Card
                         Container(

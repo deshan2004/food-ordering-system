@@ -8,10 +8,12 @@ import 'providers/payment_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/main_navigation_screen.dart';
+import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.instance.initialize();
   runApp(const FoodOrderingApp());
 }
 

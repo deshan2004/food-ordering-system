@@ -17,6 +17,8 @@ import 'map_location_picker_screen.dart';
 import 'dart:ui';
 import '../widgets/glass_box.dart';
 import '../widgets/avatar_image_helper.dart';
+import '../widgets/notification_sheet.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onNavigateTab;
@@ -199,25 +201,59 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            const Icon(Icons.notifications_none_outlined, size: 22, color: AppTheme.textPrimary),
-                            Positioned(
-                              top: 0,
-                              right: 2,
-                              child: Container(
-                                width: 7,
-                                height: 7,
-                                decoration: const BoxDecoration(
-                                  color: AppTheme.accentAmber,
-                                  shape: BoxShape.circle,
-                                ),
+                        GestureDetector(
+                          onTap: () => NotificationSheet.show(context),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Icon(
+                                Icons.notifications_none_outlined,
+                                size: 24,
+                                color: settings.isDarkMode ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
                               ),
-                            ),
-                          ],
+                              if (NotificationService.instance.unreadCount > 0)
+                                Positioned(
+                                  top: -2,
+                                  right: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(3),
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.accentRed,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 14,
+                                      minHeight: 14,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${NotificationService.instance.unreadCount}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Positioned(
+                                  top: 0,
+                                  right: 2,
+                                  child: Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.accentAmber,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         GestureDetector(
                           onTap: () => widget.onNavigateTab(3),
                           child: Container(

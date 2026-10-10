@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/order.dart';
 import '../models/cart_item.dart';
+import '../services/notification_service.dart';
 
 class OrderProvider with ChangeNotifier {
   final List<OrderModel> _orders = [];
@@ -99,6 +100,14 @@ class OrderProvider with ChangeNotifier {
     _orders.insert(0, newOrder);
     notifyListeners();
 
+    // Trigger System & In-App Notification (pops banner even if screen is locked)
+    NotificationService.instance.showOrderNotification(
+      orderId: newOrder.orderId,
+      title: '🎉 Order Confirmed! (${newOrder.orderId})',
+      body: 'Your delicious order has been received! The kitchen is preparing your dishes.',
+      payload: newOrder.orderId,
+    );
+
     // Async save to MySQL Database via PHP API
     _sendOrderToMySql(newOrder, items, grandTotalLkr, deliveryAddress);
 
@@ -120,6 +129,13 @@ class OrderProvider with ChangeNotifier {
       _orders[idx].riderPhone = driverPhone;
       _orders[idx].riderRating = driverRating;
       notifyListeners();
+
+      NotificationService.instance.showOrderNotification(
+        orderId: orderId,
+        title: '🛵 Rider Assigned! ($driverName)',
+        body: '$driverName on $driverVehicle is heading towards the restaurant to pick up your meal.',
+        payload: orderId,
+      );
     }
   }
 
@@ -133,6 +149,28 @@ class OrderProvider with ChangeNotifier {
         _orders[idx].estimatedMinsLeft = 0;
       }
       notifyListeners();
+
+      String title = '';
+      String body = '';
+      if (newStatus == OrderStatus.prepped) {
+        title = '🍳 Food Prepared & Packed!';
+        body = 'The kitchen has finished cooking your meal at Pilawos. Packed fresh & ready!';
+      } else if (newStatus == OrderStatus.onTheWay) {
+        title = '🚀 Rider On The Way!';
+        body = 'Your food has been picked up! Rider is speeding towards your location with hot food.';
+      } else if (newStatus == OrderStatus.delivered) {
+        title = '🍲 Order Delivered! Bon Appétit!';
+        body = 'Your food has arrived safely. Enjoy your meal and don\'t forget to rate your rider!';
+      }
+
+      if (title.isNotEmpty) {
+        NotificationService.instance.showOrderNotification(
+          orderId: orderId,
+          title: title,
+          body: body,
+          payload: orderId,
+        );
+      }
     }
   }
 
