@@ -112,57 +112,41 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Bonchi Brand Mascot Logo & Name (Interactive App Guide)
+                    // Bonchi Brand Mascot Logo & Name (Tap to open App Guide)
                     GestureDetector(
                       onTap: () => AboutBonchiGuideSheet.show(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppTheme.primaryGreen.withValues(alpha: 0.22),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                'assets/images/bonchi_logo.png',
-                                width: 32,
-                                height: 32,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFDCFCE7),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(Icons.eco, color: AppTheme.primaryGreen, size: 18),
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'assets/images/bonchi_logo.png',
+                              width: 32,
+                              height: 32,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDCFCE7),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
+                                child: const Icon(Icons.eco, color: AppTheme.primaryGreen, size: 18),
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Bonchi',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.primaryGreen,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.info_outline_rounded,
-                              size: 14,
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'Bonchi',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
                               color: AppTheme.primaryGreen,
+                              letterSpacing: -0.5,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
 
