@@ -115,7 +115,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateProfile({String? name, String? phone, String? address, double? latitude, double? longitude}) {
+  void updateProfile({
+    String? name,
+    String? phone,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? avatarUrl,
+  }) {
     if (_currentUser != null) {
       _currentUser = _currentUser!.copyWith(
         name: name,
@@ -123,6 +130,7 @@ class AuthProvider extends ChangeNotifier {
         address: address,
         latitude: latitude,
         longitude: longitude,
+        avatarUrl: avatarUrl,
       );
       notifyListeners();
     }

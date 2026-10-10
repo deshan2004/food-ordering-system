@@ -76,5 +76,9 @@
 	<string>Bonchi requires access to your location to find nearby restaurants and deliver food to your address.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Bonchi requires access to your location for real-time delivery tracking.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Bonchi requires camera access to allow you to take and update your profile photo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Bonchi requires photo library access to allow you to select and upload your profile picture.</string>
 </dict>
 </plist>

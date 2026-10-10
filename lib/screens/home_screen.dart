@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import 'food_detail_screen.dart';
 import 'login_screen.dart';
 import 'map_location_picker_screen.dart';
+import '../widgets/avatar_image_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onNavigateTab;
@@ -185,9 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: CircleAvatar(
                               radius: 15,
-                              backgroundImage: NetworkImage(
-                                currentUser?.avatarUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-                              ),
+                              backgroundImage: getAvatarImageProvider(currentUser?.avatarUrl),
                             ),
                           ),
                         ),

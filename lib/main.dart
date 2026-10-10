@@ -4,6 +4,7 @@ import 'providers/cart_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/payment_provider.dart';
 import 'screens/main_navigation_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -23,6 +24,7 @@ class FoodOrderingApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: MaterialApp(
         title: 'Bonchi - Sri Lankan Food Ordering',

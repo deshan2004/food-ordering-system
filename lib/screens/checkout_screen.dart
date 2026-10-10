@@ -7,6 +7,9 @@ import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import 'order_tracking_screen.dart';
 import 'map_location_picker_screen.dart';
+import '../providers/payment_provider.dart';
+import '../models/payment_method_model.dart';
+import '../widgets/payment_sheets.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -142,13 +145,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 24),
 
                   // Payment Method Selection
-                  Text('Payment Method', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  _buildPaymentTile('Credit Card', '•••• •••• •••• 4242', Icons.credit_card),
-                  const SizedBox(height: 10),
-                  _buildPaymentTile('Apple Pay', 'Fast & Secure Checkout', Icons.apple),
-                  const SizedBox(height: 10),
-                  _buildPaymentTile('Cash on Delivery', 'Pay when Bonchi rider arrives', Icons.payments_outlined),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Payment Method', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                        onPressed: () => showAddPaymentCardSheet(context),
+                        icon: const Icon(Icons.add, size: 16, color: AppTheme.primaryGreen),
+                        label: const Text('Add Card', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Consumer<PaymentProvider>(
+                    builder: (context, paymentProvider, _) {
+                      final methods = paymentProvider.paymentMethods;
+                      if (!methods.any((m) => m.title == _selectedPayment)) {
+                        _selectedPayment = paymentProvider.defaultMethod?.title ?? (methods.isNotEmpty ? methods.first.title : 'Cash on Delivery');
+                      }
+                      return Column(
+                        children: methods.map((method) {
+                          IconData icon;
+                          switch (method.type) {
+                            case PaymentType.applePay:
+                              icon = Icons.apple;
+                              break;
+                            case PaymentType.cash:
+                              icon = Icons.payments_outlined;
+                              break;
+                            default:
+                              icon = Icons.credit_card;
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _buildPaymentTile(method.title, method.subtitle, icon),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: 24),
 

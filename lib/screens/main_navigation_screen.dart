@@ -17,6 +17,9 @@ import 'restaurant_dashboard_screen.dart';
 import 'driver_dashboard_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'map_location_picker_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import '../widgets/avatar_image_helper.dart';
+import '../widgets/payment_sheets.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -377,47 +380,54 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ),
               child: Row(
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [AppTheme.primaryGreen, Color(0xFF10B981)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primaryGreen.withValues(alpha: 0.25),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                  GestureDetector(
+                    onTap: () => _showPhotoPickerOptions(context, auth),
+                    child: Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [AppTheme.primaryGreen, Color(0xFF10B981)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 34,
+                            backgroundImage: getAvatarImageProvider(user.avatarUrl),
+                          ),
                         ),
-                        child: CircleAvatar(
-                          radius: 34,
-                          backgroundImage: NetworkImage(user.avatarUrl),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () => _showEditProfileDialog(context, auth),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
                           child: Container(
                             padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                               color: AppTheme.primaryGreen,
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: const Icon(Icons.camera_alt, color: Colors.white, size: 12),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -857,11 +867,51 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Edit Profile Details', style: TextStyle(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showPhotoPickerOptions(context, auth);
+                },
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 36,
+                      backgroundImage: getAvatarImageProvider(user.avatarUrl),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(
+                          color: AppTheme.primaryGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showPhotoPickerOptions(context, auth);
+              },
+              child: const Text(
+                'Change Photo',
+                style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: nameController,
               decoration: const InputDecoration(labelText: 'Full Name', prefixIcon: Icon(Icons.person_outline)),
@@ -1145,103 +1195,332 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _showPaymentMethodsSheet(BuildContext context) {
+    showPaymentMethodsSheet(context);
+  }
+
+  void _showPhotoPickerOptions(BuildContext context, AuthProvider auth) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Payment Methods', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            const Text('Manage saved cards and payment preferences', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-            const SizedBox(height: 16),
-            _buildPaymentOptionTile(
-              icon: Icons.credit_card,
-              title: 'Commercial Bank Visa',
-              subtitle: '•••• •••• •••• 4242 (Default)',
-              badge: 'PRIMARY',
-            ),
-            const SizedBox(height: 10),
-            _buildPaymentOptionTile(
-              icon: Icons.apple,
-              title: 'Apple Pay',
-              subtitle: 'Connected & Verified',
-              badge: 'ACTIVE',
-            ),
-            const SizedBox(height: 10),
-            _buildPaymentOptionTile(
-              icon: Icons.payments_outlined,
-              title: 'Cash on Delivery',
-              subtitle: 'Pay rider in cash upon receiving food',
-              badge: 'DEFAULT',
-            ),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.add_a_photo_rounded, color: AppTheme.primaryGreen, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Change Profile Photo',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                      ),
+                      Text(
+                        'Take a photo, pick from gallery, or choose avatar',
+                        style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: const Color(0xFFF8FAFC),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppTheme.primaryGreen, size: 20),
+                ),
+                title: const Text('Take Photo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Capture a new photo with camera', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.chevron_right, size: 20, color: AppTheme.textMuted),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  try {
+                    final picker = ImagePicker();
+                    final picked = await picker.pickImage(
+                      source: ImageSource.camera,
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 85,
+                    );
+                    if (picked != null) {
+                      auth.updateProfile(avatarUrl: picked.path);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Profile photo updated from camera!'),
+                            backgroundColor: AppTheme.primaryGreen,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Could not open camera: $e'),
+                          backgroundColor: Colors.red.shade700,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: const Color(0xFFF8FAFC),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFF0284C7), size: 20),
+                ),
+                title: const Text('Choose from Gallery', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Select a picture from photo library', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.chevron_right, size: 20, color: AppTheme.textMuted),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  try {
+                    final picker = ImagePicker();
+                    final picked = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 85,
+                    );
+                    if (picked != null) {
+                      auth.updateProfile(avatarUrl: picked.path);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Profile photo updated successfully!'),
+                            backgroundColor: AppTheme.primaryGreen,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Could not open gallery: $e'),
+                          backgroundColor: Colors.red.shade700,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: const Color(0xFFF8FAFC),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const Icon(Icons.face_retouching_natural_rounded, color: Color(0xFFF59E0B), size: 20),
+                ),
+                title: const Text('Choose Avatar Preset', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Pick from curated high-quality avatars', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.chevron_right, size: 20, color: AppTheme.textMuted),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showPresetAvatarsDialog(context, auth);
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: const Color(0xFFF8FAFC),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const Icon(Icons.link_rounded, color: Color(0xFF8B5CF6), size: 20),
+                ),
+                title: const Text('Enter Web Image URL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Paste a web image link directly', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.chevron_right, size: 20, color: AppTheme.textMuted),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showImageUrlDialog(context, auth);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPaymentOptionTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String badge,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+  void _showPresetAvatarsDialog(BuildContext context, AuthProvider auth) {
+    final avatarPresets = [
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+      'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+      'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Choose Foodie Avatar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: GridView.builder(
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: avatarPresets.length,
+            itemBuilder: (ctx, i) {
+              final url = avatarPresets[i];
+              final isSelected = auth.currentUser?.avatarUrl == url;
+              return GestureDetector(
+                onTap: () {
+                  auth.updateProfile(avatarUrl: url);
+                  Navigator.pop(dialogCtx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Avatar updated successfully!'),
+                      backgroundColor: AppTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade300,
+                      width: isSelected ? 3 : 1,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(url),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+        ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.grey.shade300),
+    );
+  }
+
+  void _showImageUrlDialog(BuildContext context, AuthProvider auth) {
+    final urlController = TextEditingController(text: auth.currentUser?.avatarUrl ?? '');
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Image Web Link', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: urlController,
+              decoration: const InputDecoration(
+                labelText: 'Direct Image URL (https://...)',
+                prefixIcon: Icon(Icons.link),
+                hintText: 'https://...',
+              ),
             ),
-            child: Icon(icon, size: 22, color: AppTheme.textPrimary),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancel'),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-              ],
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+              foregroundColor: Colors.white,
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCFCE7),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              badge,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-            ),
+            onPressed: () {
+              final trimmed = urlController.text.trim();
+              if (trimmed.isNotEmpty) {
+                auth.updateProfile(avatarUrl: trimmed);
+              }
+              Navigator.pop(dialogCtx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Avatar link updated!'),
+                  backgroundColor: AppTheme.primaryGreen,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text('Apply'),
           ),
         ],
       ),
