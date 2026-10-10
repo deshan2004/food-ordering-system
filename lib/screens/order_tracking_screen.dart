@@ -1,9 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../providers/order_provider.dart';
+import '../providers/auth_provider.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 
@@ -305,26 +307,62 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
                         const SizedBox(height: 6),
 
-                        // ETA Title
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              '${freshOrder.estimatedMinsLeft} mins ',
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-                            ),
-                            const Text(
-                              'until Bonchi!',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Estimated Arrival: ${freshOrder.estimatedArrivalTime} (On Time)',
-                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                        ),
+                        // ETA Title or Delivery Success Header
+                        if (freshOrder.status == OrderStatus.delivered) ...[
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.check_circle_rounded, color: AppTheme.primaryGreen, size: 16),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      'Order Delivered! 🎉',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.primaryGreen,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            freshOrder.isRated
+                                ? 'Completed & Rated ⭐ Thank you for ordering with Bonchi!'
+                                : 'Food arrived safely! Please rate the driver & restaurant.',
+                            style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                          ),
+                        ] else ...[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                '${freshOrder.estimatedMinsLeft} mins ',
+                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                              ),
+                              const Text(
+                                'until Bonchi!',
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Estimated Arrival: ${freshOrder.estimatedArrivalTime} (On Time)',
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ],
 
                         const SizedBox(height: 20),
 
@@ -438,37 +476,125 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Action Buttons Row
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1F2937), // Dark button
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                        // Action Buttons Row (Delivered vs In Transit)
+                        if (freshOrder.status == OrderStatus.delivered && !freshOrder.isRated) ...[
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryGreen,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                elevation: 4,
+                                shadowColor: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              onPressed: () {
+                                _showRatingModal(context, orderProvider, freshOrder);
+                              },
+                              icon: const Icon(Icons.star_rounded, size: 20, color: AppTheme.starYellow),
+                              label: const Text(
+                                'Rate Driver & Restaurant ⭐',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.textSecondary,
+                                    side: BorderSide(color: Colors.grey.shade300),
+                                    padding: const EdgeInsets.symmetric(vertical: 11),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  onPressed: () {
+                                    orderProvider.clearActiveOrder(freshOrder.orderId);
+                                    if (Navigator.canPop(context)) {
+                                      Navigator.pop(context);
+                                    } else {
+                                      Navigator.popUntil(context, (route) => route.isFirst);
+                                    }
+                                  },
+                                  child: const Text('Dismiss Order', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.textPrimary,
+                                    side: const BorderSide(color: AppTheme.lightBorder),
+                                    padding: const EdgeInsets.symmetric(vertical: 11),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  onPressed: () {},
+                                  icon: const Icon(Icons.help_outline, size: 15),
+                                  label: const Text('Help', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else if (freshOrder.status == OrderStatus.delivered && freshOrder.isRated) ...[
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1F2937),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              onPressed: () {
+                                orderProvider.clearActiveOrder(freshOrder.orderId);
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                } else {
+                                  Navigator.popUntil(context, (route) => route.isFirst);
+                                }
+                              },
+                              icon: const Icon(Icons.home_outlined, size: 18),
+                              label: const Text('Order Complete • Back to Home', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                            ),
+                          ),
+                        ] else ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1F2937),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  ),
+                                  onPressed: () {
+                                    if (Navigator.canPop(context)) {
+                                      Navigator.pop(context);
+                                    } else {
+                                      Navigator.popUntil(context, (route) => route.isFirst);
+                                    }
+                                  },
+                                  child: const Text('View Order History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppTheme.textPrimary,
+                                  side: const BorderSide(color: AppTheme.lightBorder),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                 ),
-                                onPressed: () {
-                                  Navigator.popUntil(context, (route) => route.isFirst);
-                                },
-                                child: const Text('View Order History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                onPressed: () {},
+                                icon: const Icon(Icons.help_outline, size: 16),
+                                label: const Text('Help', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppTheme.textPrimary,
-                                side: const BorderSide(color: AppTheme.lightBorder),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              ),
-                              onPressed: () {},
-                              icon: const Icon(Icons.help_outline, size: 16),
-                              label: const Text('Help', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -476,6 +602,601 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showRatingModal(BuildContext context, OrderProvider orderProvider, OrderModel order) {
+    int currentStep = 1;
+    double riderRating = 5.0;
+    final Set<String> riderTags = {'On Time ⚡', 'Polite & Friendly 😊'};
+    final TextEditingController riderFeedbackController = TextEditingController();
+
+    double restaurantRating = 5.0;
+    final Set<String> restaurantTags = {'Super Tasty 😋', 'Hot & Fresh ♨️'};
+    final TextEditingController restaurantFeedbackController = TextEditingController();
+
+    final List<String> riderAvailableTags = [
+      'On Time ⚡',
+      'Polite & Friendly 😊',
+      'Careful Handling 🥡',
+      'Fast & Safe 🛵',
+      'Followed Instructions 📍',
+    ];
+
+    final List<String> restaurantAvailableTags = [
+      'Super Tasty 😋',
+      'Hot & Fresh ♨️',
+      'Perfect Spice Level 🌶️',
+      'Generous Portion 🍛',
+      'Well Packaged 🥡',
+      'Value for Money 💰',
+    ];
+
+    String getRiderRatingLabel(double rating) {
+      if (rating >= 5) return 'Outstanding Delivery! 🌟';
+      if (rating >= 4) return 'Good Service 👍';
+      if (rating >= 3) return 'Average Experience 😐';
+      if (rating >= 2) return 'Could Be Better 😕';
+      return 'Poor Service 😞';
+    }
+
+    String getRestaurantRatingLabel(double rating) {
+      if (rating >= 5) return 'Delicious & Authentic! 😋';
+      if (rating >= 4) return 'Very Tasty 👍';
+      if (rating >= 3) return 'Average Food 😐';
+      if (rating >= 2) return 'Not Satisfied 😕';
+      return 'Poor Quality 😞';
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.96),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.14),
+                          blurRadius: 28,
+                          offset: const Offset(0, -8),
+                        ),
+                      ],
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Drag bar handle
+                          Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Step badge & Points pill
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: currentStep == 1
+                                      ? AppTheme.primaryGreen.withValues(alpha: 0.12)
+                                      : Colors.orange.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  currentStep == 1 ? 'STEP 1 OF 2 • DRIVER FEEDBACK' : 'STEP 2 OF 2 • RESTAURANT RATING',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: currentStep == 1 ? AppTheme.primaryGreen : Colors.deepOrange,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade50,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.amber.shade200),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.stars_rounded, color: Colors.amber, size: 14),
+                                    SizedBox(width: 4),
+                                    Text('+50 Pts', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.brown)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // 2-Step Progress Indicator
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryGreen,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Container(
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: currentStep == 2 ? AppTheme.primaryGreen : Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // STEP 1 CONTENT: DRIVER
+                          if (currentStep == 1) ...[
+                            // Rider header card
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(22),
+                                    child: Image.asset(
+                                      'assets/images/bonchi_logo.png',
+                                      width: 44,
+                                      height: 44,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          order.riderName,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textPrimary),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Delivery Partner • ${order.riderVehicle}',
+                                          style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+                            const Text(
+                              'How was your delivery experience?',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Stars Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(5, (index) {
+                                final starVal = index + 1.0;
+                                final isSelected = starVal <= riderRating;
+                                return IconButton(
+                                  iconSize: 36,
+                                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                                  icon: Icon(
+                                    isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
+                                    color: isSelected ? AppTheme.starYellow : Colors.grey.shade300,
+                                  ),
+                                  onPressed: () {
+                                    setModalState(() {
+                                      riderRating = starVal;
+                                    });
+                                  },
+                                );
+                              }),
+                            ),
+
+                            Text(
+                              getRiderRatingLabel(riderRating),
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: AppTheme.primaryGreen),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // Quick Compliments Chips
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Compliments for the Rider:',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: riderAvailableTags.map((tag) {
+                                final isChecked = riderTags.contains(tag);
+                                return FilterChip(
+                                  label: Text(tag),
+                                  selected: isChecked,
+                                  selectedColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                                  checkmarkColor: AppTheme.primaryGreen,
+                                  labelStyle: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: isChecked ? FontWeight.bold : FontWeight.normal,
+                                    color: isChecked ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                                  ),
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(
+                                    color: isChecked ? AppTheme.primaryGreen : Colors.grey.shade300,
+                                  ),
+                                  onSelected: (val) {
+                                    setModalState(() {
+                                      if (val) {
+                                        riderTags.add(tag);
+                                      } else {
+                                        riderTags.remove(tag);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // Comment text field
+                            TextField(
+                              controller: riderFeedbackController,
+                              maxLines: 2,
+                              decoration: InputDecoration(
+                                hintText: 'Add a personal compliment for ${order.riderName} (optional)...',
+                                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: AppTheme.primaryGreen),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Next Button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryGreen,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                ),
+                                onPressed: () {
+                                  setModalState(() {
+                                    currentStep = 2;
+                                  });
+                                },
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Next: Rate Restaurant 🍽️', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.arrow_forward_rounded, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ]
+
+                          // STEP 2 CONTENT: RESTAURANT
+                          else ...[
+                            // Restaurant header card
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.orange.shade100),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: Colors.deepOrange,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(Icons.restaurant_rounded, color: Colors.white, size: 24),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          order.restaurantName,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textPrimary),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          order.items.isNotEmpty
+                                              ? '${order.items.first.foodItem.name} + ${order.items.length - 1} more'
+                                              : 'Sri Lankan Meal Order',
+                                          style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+                            const Text(
+                              'How was the food quality & taste?',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Stars Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(5, (index) {
+                                final starVal = index + 1.0;
+                                final isSelected = starVal <= restaurantRating;
+                                return IconButton(
+                                  iconSize: 36,
+                                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                                  icon: Icon(
+                                    isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
+                                    color: isSelected ? AppTheme.starYellow : Colors.grey.shade300,
+                                  ),
+                                  onPressed: () {
+                                    setModalState(() {
+                                      restaurantRating = starVal;
+                                    });
+                                  },
+                                );
+                              }),
+                            ),
+
+                            Text(
+                              getRestaurantRatingLabel(restaurantRating),
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.deepOrange),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // Quick Food Chips
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'What did you like the most?',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: restaurantAvailableTags.map((tag) {
+                                final isChecked = restaurantTags.contains(tag);
+                                return FilterChip(
+                                  label: Text(tag),
+                                  selected: isChecked,
+                                  selectedColor: Colors.orange.shade50,
+                                  checkmarkColor: Colors.deepOrange,
+                                  labelStyle: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: isChecked ? FontWeight.bold : FontWeight.normal,
+                                    color: isChecked ? Colors.deepOrange : AppTheme.textPrimary,
+                                  ),
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(
+                                    color: isChecked ? Colors.deepOrange : Colors.grey.shade300,
+                                  ),
+                                  onSelected: (val) {
+                                    setModalState(() {
+                                      if (val) {
+                                        restaurantTags.add(tag);
+                                      } else {
+                                        restaurantTags.remove(tag);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // Comment text field
+                            TextField(
+                              controller: restaurantFeedbackController,
+                              maxLines: 2,
+                              decoration: InputDecoration(
+                                hintText: 'Share feedback with ${order.restaurantName} (optional)...',
+                                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: Colors.grey.shade200),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: Colors.deepOrange),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Back & Submit Buttons
+                            Row(
+                              children: [
+                                OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.textPrimary,
+                                    side: BorderSide(color: Colors.grey.shade300),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  ),
+                                  onPressed: () {
+                                    setModalState(() {
+                                      currentStep = 1;
+                                    });
+                                  },
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.arrow_back_rounded, size: 16),
+                                      SizedBox(width: 4),
+                                      Text('Back', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryGreen,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      elevation: 3,
+                                    ),
+                                    onPressed: () {
+                                      final riderComment = [
+                                        ...riderTags,
+                                        if (riderFeedbackController.text.trim().isNotEmpty)
+                                          riderFeedbackController.text.trim()
+                                      ].join(', ');
+
+                                      final restComment = [
+                                        ...restaurantTags,
+                                        if (restaurantFeedbackController.text.trim().isNotEmpty)
+                                          restaurantFeedbackController.text.trim()
+                                      ].join(', ');
+
+                                      orderProvider.submitOrderRatings(
+                                        orderId: order.orderId,
+                                        riderRating: riderRating,
+                                        riderFeedback: riderComment,
+                                        restaurantRating: restaurantRating,
+                                        restaurantFeedback: restComment,
+                                      );
+
+                                      // Award +50 rewards points
+                                      try {
+                                        Provider.of<AuthProvider>(context, listen: false).addRewardPoints(50);
+                                      } catch (_) {}
+
+                                      // Clear active order so screen & app session refresh
+                                      orderProvider.clearActiveOrder(order.orderId);
+
+                                      Navigator.pop(modalContext);
+
+                                      if (Navigator.canPop(context)) {
+                                        Navigator.pop(context);
+                                      } else {
+                                        Navigator.popUntil(context, (route) => route.isFirst);
+                                      }
+
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          behavior: SnackBarBehavior.floating,
+                                          backgroundColor: const Color(0xFF1F2937),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                          content: const Row(
+                                            children: [
+                                              Icon(Icons.stars_rounded, color: AppTheme.starYellow, size: 24),
+                                              SizedBox(width: 10),
+                                              Expanded(
+                                                child: Text(
+                                                  'Thank you for rating! +50 Bonchi points awarded to your wallet ⭐',
+                                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Submit & Finish 🎉',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );

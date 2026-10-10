@@ -43,11 +43,40 @@ class OrderProvider with ChangeNotifier {
 
   OrderModel? get activeOrder {
     try {
+      // Active order is any ongoing order or a freshly delivered order that hasn't been rated yet
       return _orders.firstWhere(
-        (o) => o.status != OrderStatus.delivered,
+        (o) => o.status != OrderStatus.delivered || !o.isRated,
       );
     } catch (_) {
-      return _orders.isNotEmpty ? _orders.first : null;
+      return null;
+    }
+  }
+
+  void submitOrderRatings({
+    required String orderId,
+    required double riderRating,
+    required String riderFeedback,
+    required double restaurantRating,
+    required String restaurantFeedback,
+  }) {
+    final idx = _orders.indexWhere((o) => o.orderId == orderId);
+    if (idx != -1) {
+      _orders[idx].status = OrderStatus.delivered;
+      _orders[idx].isRated = true;
+      _orders[idx].riderRatingScore = riderRating;
+      _orders[idx].riderFeedbackText = riderFeedback;
+      _orders[idx].restaurantRatingScore = restaurantRating;
+      _orders[idx].restaurantFeedbackText = restaurantFeedback;
+      notifyListeners();
+    }
+  }
+
+  void clearActiveOrder(String orderId) {
+    final idx = _orders.indexWhere((o) => o.orderId == orderId);
+    if (idx != -1) {
+      _orders[idx].status = OrderStatus.delivered;
+      _orders[idx].isRated = true;
+      notifyListeners();
     }
   }
 

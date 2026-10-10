@@ -209,4 +209,13 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void addRewardPoints(int points) {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(
+        rewardsPoints: _currentUser!.rewardsPoints + points,
+      );
+      notifyListeners();
+    }
+  }
 }

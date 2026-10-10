@@ -35,6 +35,11 @@ class OrderModel {
   final double distanceKm;
   final double driverEarningsLkr;
   bool isDriverAssigned;
+  bool isRated;
+  double? riderRatingScore;
+  String? riderFeedbackText;
+  double? restaurantRatingScore;
+  String? restaurantFeedbackText;
 
   OrderModel({
     required this.orderId,
@@ -64,6 +69,11 @@ class OrderModel {
     this.distanceKm = 3.8,
     this.driverEarningsLkr = 380.0,
     this.isDriverAssigned = true,
+    this.isRated = false,
+    this.riderRatingScore,
+    this.riderFeedbackText,
+    this.restaurantRatingScore,
+    this.restaurantFeedbackText,
   });
 
   String get statusText {
