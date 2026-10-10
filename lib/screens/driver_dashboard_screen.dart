@@ -37,7 +37,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final acceptedJobs = orderProvider.myAcceptedDriverDeliveries;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -45,23 +45,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
                 color: const Color(0xFF0284C7).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
               ),
-              child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF0284C7), size: 22),
+              child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF0284C7), size: 20),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Bonchi Rider Portal',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.textPrimary, letterSpacing: -0.3),
                 ),
                 Text(
-                  '$_driverName • $_driverVehicle',
+                  '$_driverName • Col 03',
                   style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
                 ),
               ],
@@ -69,44 +70,115 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ],
         ),
         actions: [
-          // Switch to Customer Demo Mode shortcut
-          TextButton.icon(
-            style: TextButton.styleFrom(
-              foregroundColor: AppTheme.primaryGreen,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+          // Switch to Customer Demo Mode capsule button
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: () => authProvider.setRole(UserRole.customer),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.swap_horiz_rounded, size: 15, color: AppTheme.primaryGreen),
+                    SizedBox(width: 4),
+                    Text(
+                      'Customer App',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            onPressed: () {
-              authProvider.setRole(UserRole.customer);
-            },
-            icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-            label: const Text('Customer App', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Online / Offline Status Bar
-          _buildOnlineStatusBanner(),
-
-          // Main Tabs Segment Bar
-          _buildNavigationSegment(),
-
-          // Tab Content
-          Expanded(
-            child: _buildSelectedTabContent(orderProvider, availableJobs, acceptedJobs),
+      body: _buildSelectedTabContent(orderProvider, availableJobs, acceptedJobs),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BottomNavigationBar(
+            currentIndex: _selectedTab,
+            onTap: (index) => setState(() => _selectedTab = index),
+            backgroundColor: Colors.white,
+            selectedItemColor: AppTheme.primaryGreen,
+            unselectedItemColor: AppTheme.textSecondary,
+            selectedFontSize: 11,
+            unselectedFontSize: 11,
+            type: BottomNavigationBarType.fixed,
+            elevation: 0,
+            items: [
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: availableJobs.isNotEmpty,
+                  label: Text('${availableJobs.length}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                  backgroundColor: AppTheme.primaryGreen,
+                  child: const Icon(Icons.radar_outlined, size: 22),
+                ),
+                activeIcon: Badge(
+                  isLabelVisible: availableJobs.isNotEmpty,
+                  label: Text('${availableJobs.length}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                  backgroundColor: AppTheme.primaryGreen,
+                  child: const Icon(Icons.radar_rounded, color: AppTheme.primaryGreen, size: 22),
+                ),
+                label: 'Nearby Jobs',
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: acceptedJobs.isNotEmpty,
+                  label: Text('${acceptedJobs.length}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                  backgroundColor: Colors.orange.shade700,
+                  child: const Icon(Icons.navigation_outlined, size: 22),
+                ),
+                activeIcon: Badge(
+                  isLabelVisible: acceptedJobs.isNotEmpty,
+                  label: Text('${acceptedJobs.length}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                  backgroundColor: Colors.orange.shade700,
+                  child: const Icon(Icons.navigation_rounded, color: AppTheme.primaryGreen, size: 22),
+                ),
+                label: 'Active Trip',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.account_balance_wallet_outlined, size: 22),
+                activeIcon: Icon(Icons.account_balance_wallet_rounded, color: AppTheme.primaryGreen, size: 22),
+                label: 'Earnings',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline_rounded, size: 22),
+                activeIcon: Icon(Icons.person_rounded, color: AppTheme.primaryGreen, size: 22),
+                label: 'Rider Info',
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildOnlineStatusBanner() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: _isOnline ? const Color(0xFF0F172A) : Colors.grey.shade800,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -128,13 +200,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   color: _isOnline ? const Color(0xFF22C55E) : Colors.redAccent,
                   boxShadow: [
                     BoxShadow(
-                      color: (_isOnline ? const Color(0xFF22C55E) : Colors.redAccent).withValues(alpha: 0.5),
-                      blurRadius: 6,
+                      color: (_isOnline ? const Color(0xFF22C55E) : Colors.redAccent).withValues(alpha: 0.6),
+                      blurRadius: 8,
+                      spreadRadius: 1,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -143,7 +216,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
                   ),
                   Text(
-                    _isOnline ? 'Scanning nearby hotel orders in Colombo' : 'Turn online to receive new food orders',
+                    _isOnline ? 'Scanning nearby food orders in Colombo' : 'Turn online to receive new food orders',
                     style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ],
@@ -170,62 +243,49 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     );
   }
 
-  Widget _buildNavigationSegment() {
-    final tabs = [
-      {'title': 'Nearby Jobs', 'icon': Icons.radar_rounded},
-      {'title': 'Active Order', 'icon': Icons.navigation_rounded},
-      {'title': 'Earnings', 'icon': Icons.account_balance_wallet_rounded},
-      {'title': 'Rider Info', 'icon': Icons.person_rounded},
-    ];
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = _selectedTab == index;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedTab = index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      tabs[index]['icon'] as IconData,
-                      size: 16,
-                      color: isSelected ? Colors.white : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        tabs[index]['title'] as String,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: isSelected ? Colors.white : AppTheme.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+  Widget _buildQuickStatCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-          );
-        }),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -252,66 +312,109 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   // TAB 1: AVAILABLE NEARBY JOBS
   // -------------------------------------------------------------
   Widget _buildAvailableJobsTab(OrderProvider orderProvider, List<OrderModel> availableJobs) {
-    if (!_isOnline) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.power_settings_new_rounded, size: 54, color: Colors.grey.shade400),
-            const SizedBox(height: 12),
-            const Text(
-              'You are currently Offline',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Toggle the switch at top to go Online and receive orders',
-              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-            ),
-          ],
-        ),
-      );
-    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Rider Status Card
+          _buildOnlineStatusBanner(),
 
-    if (availableJobs.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          const SizedBox(height: 12),
+
+          // 2. 3 Quick Stat Cards
+          Row(
             children: [
+              _buildQuickStatCard('Nearby Jobs', '${availableJobs.length} Available', Icons.radar_rounded, const Color(0xFF0284C7)),
+              const SizedBox(width: 10),
+              _buildQuickStatCard("Today's Pay", 'Rs. ${_todayEarnings.toStringAsFixed(0)}', Icons.payments_rounded, AppTheme.primaryGreen),
+              const SizedBox(width: 10),
+              _buildQuickStatCard('Trips Done', '$_completedTripsToday Trips', Icons.task_alt_rounded, Colors.orange.shade700),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          // Section Heading
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Nearby Delivery Jobs',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.3),
+              ),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.radar_rounded, size: 48, color: AppTheme.primaryGreen),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Searching for Nearby Orders...',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'As soon as a customer orders from a hotel near Colombo 03, the pickup job will instantly ping here.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+                child: Text(
+                  '${availableJobs.length} In Range',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                ),
               ),
             ],
           ),
-        ),
-      );
-    }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: availableJobs.length,
-      itemBuilder: (context, index) {
-        final order = availableJobs[index];
-        return _buildJobCard(orderProvider, order);
-      },
+          const SizedBox(height: 12),
+
+          if (!_isOnline)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  children: [
+                    Icon(Icons.power_settings_new_rounded, size: 54, color: Colors.grey.shade400),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'You are currently Offline',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Toggle the switch above to go Online and receive orders',
+                      style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (availableJobs.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.radar_rounded, size: 48, color: AppTheme.primaryGreen),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Scanning for Food Orders...',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'As soon as a customer orders from a hotel near Colombo 03, the pickup job will ping here.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...availableJobs.map((order) => _buildJobCard(orderProvider, order)),
+
+          const SizedBox(height: 90),
+        ],
+      ),
     );
   }
 
@@ -552,48 +655,78 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   // TAB 2: ACTIVE DELIVERY / TRIP PROGRESS
   // -------------------------------------------------------------
   Widget _buildActiveDeliveriesTab(OrderProvider orderProvider, List<OrderModel> acceptedJobs) {
-    if (acceptedJobs.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.moped_rounded, size: 54, color: Colors.grey.shade400),
-              const SizedBox(height: 14),
               const Text(
-                'No Active Deliveries Right Now',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                'Active Trip Progress',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.3),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Head over to the "Nearby Jobs" tab to accept a waiting delivery order.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 18),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                onPressed: () => setState(() => _selectedTab = 0),
-                child: const Text('View Available Jobs', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(
+                  '${acceptedJobs.length} Ongoing',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                ),
               ),
             ],
           ),
-        ),
-      );
-    }
+          const SizedBox(height: 12),
+          if (acceptedJobs.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 50),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.moped_rounded, size: 50, color: Colors.grey.shade400),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No Active Deliveries Right Now',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Head over to the "Nearby Jobs" tab to accept a waiting delivery order.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 18),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryGreen,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      onPressed: () => setState(() => _selectedTab = 0),
+                      child: const Text('View Available Jobs', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...acceptedJobs.map((order) => _buildActiveDeliveryCard(orderProvider, order)),
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: acceptedJobs.length,
-      itemBuilder: (context, index) {
-        final order = acceptedJobs[index];
-        return _buildActiveDeliveryCard(orderProvider, order);
-      },
+          const SizedBox(height: 90),
+        ],
+      ),
     );
   }
 
@@ -806,7 +939,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   // -------------------------------------------------------------
   Widget _buildEarningsTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -987,7 +1120,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   // -------------------------------------------------------------
   Widget _buildRiderProfileTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
       child: Column(
         children: [
           Container(

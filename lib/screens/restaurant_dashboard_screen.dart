@@ -14,7 +14,7 @@ class RestaurantDashboardScreen extends StatefulWidget {
 }
 
 class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
-  int _selectedTab = 0; // 0: Live Orders, 1: Earnings & Wallet, 2: Menu Stock, 3: Hotel Profile
+  int _currentIndex = 0; // 0: Live Orders, 1: Sales & Wallet, 2: Menu Stock, 3: Hotel Profile
   bool _isKitchenOpen = true;
 
   // Restaurant State
@@ -49,23 +49,24 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
                 color: Colors.orange.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
-              child: const Icon(Icons.soup_kitchen_rounded, color: Colors.orange, size: 22),
+              child: const Icon(Icons.soup_kitchen_rounded, color: Colors.orange, size: 20),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Kitchen Live Manager',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.textPrimary, letterSpacing: -0.3),
                 ),
                 Text(
-                  '$_restaurantName • Colombo 03',
+                  '$_restaurantName • Col 03',
                   style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
                 ),
               ],
@@ -73,173 +74,105 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
           ],
         ),
         actions: [
-          // Switch to Customer Demo Mode shortcut
-          TextButton.icon(
-            style: TextButton.styleFrom(
-              foregroundColor: AppTheme.primaryGreen,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-            ),
-            onPressed: () {
-              authProvider.setRole(UserRole.customer);
-            },
-            icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-            label: const Text('Customer App', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Kitchen Status Banner
-          _buildKitchenStatusBanner(),
-
-          // Navigation Tabs
-          _buildNavigationSegment(),
-
-          // Tab Content
-          Expanded(
-            child: _buildSelectedTabContent(orderProvider, activeOrders, deliveredOrders),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKitchenStatusBanner() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: _isKitchenOpen ? const Color(0xFF0F172A) : Colors.grey.shade800,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
+          // Switch to Customer Demo Mode capsule button
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: () => authProvider.setRole(UserRole.customer),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber,
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber).withValues(alpha: 0.5),
-                      blurRadius: 6,
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.swap_horiz_rounded, size: 15, color: AppTheme.primaryGreen),
+                    SizedBox(width: 4),
+                    Text(
+                      'Customer App',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isKitchenOpen ? 'Kitchen Status: OPEN & ACCEPTING' : 'Kitchen Status: BUSY / PAUSED',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
-                  ),
-                  Text(
-                    _isKitchenOpen ? 'Live orders will pop up instantly for food prep' : 'Orders temporarily paused for rush hour',
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
-                  ),
-                ],
+            ),
+          ),
+        ],
+      ),
+      body: _buildCurrentTabBody(orderProvider, activeOrders, deliveredOrders),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+            backgroundColor: Colors.white,
+            selectedItemColor: Colors.orange.shade700,
+            unselectedItemColor: AppTheme.textSecondary,
+            selectedFontSize: 11,
+            unselectedFontSize: 11,
+            type: BottomNavigationBarType.fixed,
+            elevation: 0,
+            items: [
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: activeOrders.isNotEmpty,
+                  label: Text('${activeOrders.length}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                  backgroundColor: Colors.orange.shade700,
+                  child: const Icon(Icons.soup_kitchen_outlined, size: 22),
+                ),
+                activeIcon: Badge(
+                  isLabelVisible: activeOrders.isNotEmpty,
+                  label: Text('${activeOrders.length}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                  backgroundColor: Colors.orange.shade700,
+                  child: Icon(Icons.soup_kitchen_rounded, color: Colors.orange.shade700, size: 22),
+                ),
+                label: 'Kitchen',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.account_balance_wallet_outlined, size: 22),
+                activeIcon: Icon(Icons.account_balance_wallet_rounded, color: Colors.orange, size: 22),
+                label: 'Sales',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_menu_outlined, size: 22),
+                activeIcon: Icon(Icons.restaurant_menu_rounded, color: Colors.orange, size: 22),
+                label: 'Menu Stock',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.storefront_outlined, size: 22),
+                activeIcon: Icon(Icons.storefront_rounded, color: Colors.orange, size: 22),
+                label: 'Hotel Info',
               ),
             ],
           ),
-          Switch(
-            value: _isKitchenOpen,
-            activeColor: const Color(0xFF22C55E),
-            onChanged: (val) {
-              setState(() => _isKitchenOpen = val);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(val ? 'Kitchen is now Open for customer orders!' : 'Kitchen paused.'),
-                  backgroundColor: val ? AppTheme.primaryGreen : Colors.grey.shade800,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildNavigationSegment() {
-    final tabs = [
-      {'title': 'Live Orders', 'icon': Icons.soup_kitchen_rounded},
-      {'title': 'Sales & Wallet', 'icon': Icons.account_balance_wallet_rounded},
-      {'title': 'Menu Stock', 'icon': Icons.restaurant_menu_rounded},
-      {'title': 'Hotel Info', 'icon': Icons.storefront_rounded},
-    ];
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: List.generate(tabs.length, (index) {
-          final isSelected = _selectedTab == index;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedTab = index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.orange.shade700 : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      tabs[index]['icon'] as IconData,
-                      size: 16,
-                      color: isSelected ? Colors.white : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        tabs[index]['title'] as String,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: isSelected ? Colors.white : AppTheme.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildSelectedTabContent(
+  Widget _buildCurrentTabBody(
     OrderProvider orderProvider,
     List<OrderModel> activeOrders,
     List<OrderModel> deliveredOrders,
   ) {
-    switch (_selectedTab) {
+    switch (_currentIndex) {
       case 0:
         return _buildLiveOrdersTab(orderProvider, activeOrders);
       case 1:
@@ -256,45 +189,193 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
   // TAB 1: KITCHEN LIVE ORDERS
   // -------------------------------------------------------------
   Widget _buildLiveOrdersTab(OrderProvider orderProvider, List<OrderModel> activeOrders) {
-    if (activeOrders.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Kitchen Status Card (Modern Obsidian Card)
+          _buildKitchenStatusBanner(),
+
+          const SizedBox(height: 14),
+
+          // 2. Quick Stat Cards (Like User Profile)
+          Row(
             children: [
+              _buildQuickStatCard('Orders Today', '$_completedOrdersToday Done', Icons.receipt_long_rounded, const Color(0xFF0284C7)),
+              const SizedBox(width: 10),
+              _buildQuickStatCard('Cooking Now', '${activeOrders.length} Active', Icons.soup_kitchen_rounded, Colors.orange.shade700),
+              const SizedBox(width: 10),
+              _buildQuickStatCard('Gross Sales', 'Rs. 42.8k', Icons.attach_money_rounded, AppTheme.primaryGreen),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Section Heading
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Incoming Live Orders',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.3),
+              ),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+                  color: Colors.orange.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.check_circle_outline, size: 48, color: Colors.orange.shade700),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Kitchen is All Caught Up! 🎉',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'No pending food orders to cook right now. Incoming orders will pop up here with sound alert.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+                child: Text(
+                  '${activeOrders.length} In Queue',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange.shade700),
+                ),
               ),
             ],
           ),
-        ),
-      );
-    }
+          const SizedBox(height: 12),
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: activeOrders.length,
-      itemBuilder: (context, index) {
-        final order = activeOrders[index];
-        return _buildKitchenOrderCard(orderProvider, order);
-      },
+          if (activeOrders.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.check_circle_outline, size: 48, color: Colors.orange.shade700),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Kitchen is All Caught Up! 🎉',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'No pending food orders right now. Orders placed by customers in Colombo will ring here instantly.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...activeOrders.map((order) => _buildKitchenOrderCard(orderProvider, order)),
+
+          const SizedBox(height: 90), // Bottom clearance for floating bar
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKitchenStatusBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: _isKitchenOpen ? const Color(0xFF0F172A) : Colors.grey.shade800,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_isKitchenOpen ? const Color(0xFF22C55E) : Colors.amber).withValues(alpha: 0.6),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isKitchenOpen ? 'Kitchen: OPEN & COOKING' : 'Kitchen: BUSY / PAUSED',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isKitchenOpen ? 'Receiving online food orders from customers' : 'New orders temporarily paused',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Transform.scale(
+            scale: 0.85,
+            child: Switch(
+              value: _isKitchenOpen,
+              activeColor: const Color(0xFF22C55E),
+              onChanged: (val) {
+                setState(() => _isKitchenOpen = val);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(val ? 'Kitchen is Open for orders!' : 'Kitchen paused.'),
+                    backgroundColor: val ? AppTheme.primaryGreen : Colors.grey.shade800,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStatCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 3)),
+          ],
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 16, color: color),
+            ),
+            const SizedBox(height: 8),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, color: AppTheme.textPrimary)),
+            const SizedBox(height: 2),
+            Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -310,21 +391,21 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
             : AppTheme.primaryGreen;
 
     String statusText = isNew
-        ? 'NEW ORDER • START COOKING'
+        ? 'NEW ORDER'
         : isPrepping
-            ? 'COOKING IN PROGRESS'
-            : 'PICKED UP BY RIDER';
+            ? 'COOKING'
+            : 'PICKED UP';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
@@ -337,7 +418,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             decoration: const BoxDecoration(
               color: Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -364,7 +445,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                 ),
                 Text(
                   'Rs. ${order.grandTotalLkr.toStringAsFixed(0)}',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: AppTheme.primaryGreen),
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.primaryGreen),
                 ),
               ],
             ),
@@ -378,12 +459,12 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                 // Customer & Delivery Address
                 Row(
                   children: [
-                    const Icon(Icons.person_pin_circle, size: 18, color: AppTheme.textSecondary),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textMuted),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         '${order.customerName} • ${order.deliveryAddress}',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -392,19 +473,25 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Food Items Ticket
+                // Food Items Ticket (POS Receipt Style)
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFFBEB),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: const Color(0xFFFDE68A)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('KITCHEN PREP TICKET:', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: Color(0xFF92400E))),
-                      const SizedBox(height: 6),
+                      const Row(
+                        children: [
+                          Icon(Icons.restaurant, size: 14, color: Color(0xFF92400E)),
+                          SizedBox(width: 6),
+                          Text('KITCHEN PREP TICKET', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: Color(0xFF92400E), letterSpacing: 0.6)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       ...order.items.map((item) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 3),
                             child: Row(
@@ -420,20 +507,27 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                                       ),
                                       child: Text(
                                         '${item.quantity}x',
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       item.foodItem.name,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                     ),
                                   ],
                                 ),
                                 if (item.selectedSpiceLevel != null)
-                                  Text(
-                                    item.selectedSpiceLevel!.name,
-                                    style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.deepOrange),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade50,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '🌶️ ${item.selectedSpiceLevel!.name}',
+                                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.red.shade800),
+                                    ),
                                   ),
                               ],
                             ),
@@ -442,14 +536,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
 
                 // Assigned Driver Status
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
@@ -465,7 +559,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                               ? 'Assigned Rider: ${order.riderName} (${order.riderVehicle})'
                               : 'Waiting for a nearby rider to accept delivery...',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: order.isDriverAssigned ? const Color(0xFF0F172A) : AppTheme.textSecondary,
                           ),
@@ -487,7 +581,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                         backgroundColor: Colors.orange.shade700,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       onPressed: () {
                         orderProvider.updateOrderStatus(order.orderId, OrderStatus.prepped);
@@ -500,7 +594,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                         );
                       },
                       icon: const Icon(Icons.soup_kitchen, size: 18),
-                      label: const Text('Accept & Start Cooking 🍳', style: TextStyle(fontWeight: FontWeight.bold)),
+                      label: const Text('Accept & Start Cooking 🍳', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                     ),
                   ),
                 ] else if (isPrepping) ...[
@@ -512,7 +606,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                         backgroundColor: AppTheme.primaryGreen,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -524,7 +618,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                         );
                       },
                       icon: const Icon(Icons.check_circle_rounded, size: 18),
-                      label: const Text('Food Ready for Rider Pickup 🛵', style: TextStyle(fontWeight: FontWeight.bold)),
+                      label: const Text('Food Ready for Rider Pickup 🛵', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                     ),
                   ),
                 ] else if (isPickedUp) ...[
@@ -538,7 +632,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                     child: const Center(
                       child: Text(
                         'Rider is en route to customer destination 🛵',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primaryGreen),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: AppTheme.primaryGreen),
                       ),
                     ),
                   ),
@@ -552,15 +646,15 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
   }
 
   // -------------------------------------------------------------
-  // TAB 2: RESTAURANT EARNINGS & FINANCE WALLET
+  // TAB 2: SALES & FINANCE WALLET
   // -------------------------------------------------------------
   Widget _buildRestaurantFinanceTab(List<OrderModel> deliveredOrders) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Restaurant Wallet Card
+          // Restaurant Wallet Card (Luxury Maroon/Navy Gradient)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -569,11 +663,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 15,
+                  color: const Color(0xFF831843).withValues(alpha: 0.3),
+                  blurRadius: 18,
                   offset: const Offset(0, 6),
                 ),
               ],
@@ -584,7 +678,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('RESTAURANT SETTLEMENT WALLET', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    Text('RESTAURANT SETTLEMENT WALLET', style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     Icon(Icons.verified, color: Colors.white, size: 18),
                   ],
                 ),
@@ -600,7 +694,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: Colors.white.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -617,7 +711,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: Colors.white.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -644,7 +738,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                     ),
                     onPressed: _showRestaurantPayoutDialog,
                     icon: const Icon(Icons.account_balance_rounded, size: 18),
-                    label: const Text('Request Payout to Bank Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    label: const Text('Request Payout to Bank Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                   ),
                 ),
               ],
@@ -652,7 +746,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
           ),
 
           const SizedBox(height: 22),
-          const Text('Daily Financial Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary)),
+          const Text('Daily Financial Breakdown', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.textPrimary)),
           const SizedBox(height: 12),
 
           _buildFinanceRow('Total Food Sales', 'Rs. ${_todaySales.toStringAsFixed(0)}', const Color(0xFF0284C7), Icons.point_of_sale_rounded),
@@ -660,6 +754,8 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
           _buildFinanceRow('Bonchi Commission (10%)', '- Rs. ${(_todaySales * 0.1).toStringAsFixed(0)}', Colors.redAccent, Icons.percent_rounded),
           const SizedBox(height: 10),
           _buildFinanceRow('Net Payable to Restaurant', 'Rs. ${_walletBalance.toStringAsFixed(0)}', AppTheme.primaryGreen, Icons.savings_rounded),
+
+          const SizedBox(height: 90),
         ],
       ),
     );
@@ -696,11 +792,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
   // -------------------------------------------------------------
   Widget _buildMenuStockTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
         const Text(
           'Live Kitchen Stock Toggle',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.textPrimary),
         ),
         const SizedBox(height: 4),
         const Text(
@@ -715,7 +811,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.grey.shade200),
             ),
             child: Row(
@@ -752,6 +848,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
             ),
           );
         }),
+        const SizedBox(height: 90),
       ],
     );
   }
@@ -761,14 +858,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
   // -------------------------------------------------------------
   Widget _buildHotelInfoTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.grey.shade200),
             ),
             child: Column(
@@ -796,6 +893,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 90),
         ],
       ),
     );
@@ -823,7 +921,7 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Bank Payout Request', style: TextStyle(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
