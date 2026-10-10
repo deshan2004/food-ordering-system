@@ -1125,10 +1125,11 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Bank Payout Request', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             const Text(
               'Confirm transfer of your available restaurant earnings:',
               style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
@@ -1162,7 +1163,8 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
             ),
           ],
         ),
-        actions: [
+      ),
+      actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen, foregroundColor: Colors.white),

@@ -1277,19 +1277,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: const Text('Edit Rider Vehicle Details', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: vehicleCtrl,
-              decoration: const InputDecoration(labelText: 'Vehicle Number & Model', prefixIcon: Icon(Icons.two_wheeler)),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: phoneCtrl,
-              decoration: const InputDecoration(labelText: 'Contact Phone', prefixIcon: Icon(Icons.phone)),
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: vehicleCtrl,
+                decoration: const InputDecoration(labelText: 'Vehicle Number & Model', prefixIcon: Icon(Icons.two_wheeler)),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneCtrl,
+                decoration: const InputDecoration(labelText: 'Contact Phone', prefixIcon: Icon(Icons.phone)),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
@@ -1318,10 +1320,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Withdraw Payout to Bank', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             const Text(
               'Transfer your earnings to your linked bank account:',
               style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
@@ -1355,7 +1358,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ),
           ],
         ),
-        actions: [
+      ),
+      actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen, foregroundColor: Colors.white),

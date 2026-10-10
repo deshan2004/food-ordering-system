@@ -873,59 +873,61 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Edit Profile Details', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: GestureDetector(
-                onTap: () {
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _showPhotoPickerOptions(context, auth);
+                  },
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 36,
+                        backgroundImage: getAvatarImageProvider(user.avatarUrl),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryGreen,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextButton(
+                onPressed: () {
                   Navigator.pop(ctx);
                   _showPhotoPickerOptions(context, auth);
                 },
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundImage: getAvatarImageProvider(user.avatarUrl),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: const BoxDecoration(
-                          color: AppTheme.primaryGreen,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 13),
-                      ),
-                    ),
-                  ],
+                child: const Text(
+                  'Change Photo',
+                  style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _showPhotoPickerOptions(context, auth);
-              },
-              child: const Text(
-                'Change Photo',
-                style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
+              const SizedBox(height: 8),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Full Name', prefixIcon: Icon(Icons.person_outline)),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Full Name', prefixIcon: Icon(Icons.person_outline)),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: phoneController,
-              decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone_outlined)),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone_outlined)),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
@@ -980,31 +982,45 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _showRoleDemoModal(BuildContext context, AuthProvider auth) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Select User Role (MySQL Demo)',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Easily test Customer, Restaurant, Driver, and Admin interfaces:',
-              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            _buildRoleOption(ctx, auth, 'Customer UI', 'Browse & order food', Icons.shopping_bag, UserRole.customer),
-            _buildRoleOption(ctx, auth, 'Restaurant Manager', 'View live orders & kitchen status', Icons.restaurant, UserRole.restaurant),
-            _buildRoleOption(ctx, auth, 'Delivery Driver (Rider)', 'Pickup & deliver orders', Icons.two_wheeler, UserRole.driver),
-            _buildRoleOption(ctx, auth, 'Super Admin', 'Manage MySQL food items & sales', Icons.admin_panel_settings, UserRole.admin),
-          ],
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Select User Role (MySQL Demo)',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Easily test Customer, Restaurant, Driver, and Admin interfaces:',
+                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              _buildRoleOption(ctx, auth, 'Customer UI', 'Browse & order food', Icons.shopping_bag, UserRole.customer),
+              _buildRoleOption(ctx, auth, 'Restaurant Manager', 'View live orders & kitchen status', Icons.restaurant, UserRole.restaurant),
+              _buildRoleOption(ctx, auth, 'Delivery Driver (Rider)', 'Pickup & deliver orders', Icons.two_wheeler, UserRole.driver),
+              _buildRoleOption(ctx, auth, 'Super Admin', 'Manage MySQL food items & sales', Icons.admin_panel_settings, UserRole.admin),
+            ],
+          ),
         ),
       ),
     );
@@ -1042,106 +1058,108 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.starYellow.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.starYellow.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.stars_rounded, color: AppTheme.starYellow, size: 24),
                   ),
-                  child: const Icon(Icons.stars_rounded, color: AppTheme.starYellow, size: 24),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Bonchi Rewards Club', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                    Text('Available Balance: ${user.rewardsPoints} Points', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            const Text('Available Rewards & Vouchers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textSecondary)),
-            const SizedBox(height: 10),
-            _buildVoucherItem(
-              title: 'LKR 500 Discount Coupon',
-              code: 'BONCHI500',
-              points: 150,
-              userPoints: user.rewardsPoints,
-              icon: Icons.local_offer_rounded,
-              color: AppTheme.primaryGreen,
-              onRedeem: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Coupon BONCHI500 redeemed! Applied to your next order.'),
-                    backgroundColor: AppTheme.primaryGreen,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Bonchi Rewards Club', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                      Text('Available Balance: ${user.rewardsPoints} Points', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                    ],
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildVoucherItem(
-              title: 'Free Delivery on 3 Orders',
-              code: 'FREESHIP3',
-              points: 100,
-              userPoints: user.rewardsPoints,
-              icon: Icons.two_wheeler_rounded,
-              color: const Color(0xFF3B82F6),
-              onRedeem: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Free delivery perk activated!'),
-                    backgroundColor: AppTheme.primaryGreen,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildVoucherItem(
-              title: 'Free Garlic Bread with Meal',
-              code: 'FREEGARLIC',
-              points: 75,
-              userPoints: user.rewardsPoints,
-              icon: Icons.fastfood_rounded,
-              color: const Color(0xFFF59E0B),
-              onRedeem: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Voucher FREEGARLIC added to your checkout!'),
-                    backgroundColor: AppTheme.primaryGreen,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 18),
+              const Text('Available Rewards & Vouchers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textSecondary)),
+              const SizedBox(height: 10),
+              _buildVoucherItem(
+                title: 'LKR 500 Discount Coupon',
+                code: 'BONCHI500',
+                points: 150,
+                userPoints: user.rewardsPoints,
+                icon: Icons.local_offer_rounded,
+                color: AppTheme.primaryGreen,
+                onRedeem: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Coupon BONCHI500 redeemed! Applied to your next order.'),
+                      backgroundColor: AppTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildVoucherItem(
+                title: 'Free Delivery on 3 Orders',
+                code: 'FREESHIP3',
+                points: 100,
+                userPoints: user.rewardsPoints,
+                icon: Icons.two_wheeler_rounded,
+                color: const Color(0xFF3B82F6),
+                onRedeem: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Free delivery perk activated!'),
+                      backgroundColor: AppTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildVoucherItem(
+                title: 'Free Garlic Bread with Meal',
+                code: 'FREEGARLIC',
+                points: 75,
+                userPoints: user.rewardsPoints,
+                icon: Icons.fastfood_rounded,
+                color: const Color(0xFFF59E0B),
+                onRedeem: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Voucher FREEGARLIC added to your checkout!'),
+                      backgroundColor: AppTheme.primaryGreen,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1208,12 +1226,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _showPhotoPickerOptions(BuildContext context, AuthProvider auth) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (sheetContext) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1448,46 +1467,49 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Choose Foodie Avatar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: GridView.builder(
-            shrinkWrap: true,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+        content: SingleChildScrollView(
+          child: SizedBox(
+            width: double.maxFinite,
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: avatarPresets.length,
+              itemBuilder: (ctx, i) {
+                final url = avatarPresets[i];
+                final isSelected = auth.currentUser?.avatarUrl == url;
+                return GestureDetector(
+                  onTap: () {
+                    auth.updateProfile(avatarUrl: url);
+                    Navigator.pop(dialogCtx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Avatar updated successfully!'),
+                        backgroundColor: AppTheme.primaryGreen,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade300,
+                        width: isSelected ? 3 : 1,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(url),
+                    ),
+                  ),
+                );
+              },
             ),
-            itemCount: avatarPresets.length,
-            itemBuilder: (ctx, i) {
-              final url = avatarPresets[i];
-              final isSelected = auth.currentUser?.avatarUrl == url;
-              return GestureDetector(
-                onTap: () {
-                  auth.updateProfile(avatarUrl: url);
-                  Navigator.pop(dialogCtx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Avatar updated successfully!'),
-                      backgroundColor: AppTheme.primaryGreen,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade300,
-                      width: isSelected ? 3 : 1,
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(url),
-                  ),
-                ),
-              );
-            },
           ),
         ),
         actions: [
@@ -1508,18 +1530,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Image Web Link', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: urlController,
-              decoration: const InputDecoration(
-                labelText: 'Direct Image URL (https://...)',
-                prefixIcon: Icon(Icons.link),
-                hintText: 'https://...',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: urlController,
+                decoration: const InputDecoration(
+                  labelText: 'Direct Image URL (https://...)',
+                  prefixIcon: Icon(Icons.link),
+                  hintText: 'https://...',
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -1555,58 +1579,61 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _showNotificationsSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setSheetState) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Notification Preferences', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                const Text('Choose alerts you want to receive from Bonchi', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  activeColor: AppTheme.primaryGreen,
-                  title: const Text('Live Order Tracking Alerts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: const Text('Instant updates when rider picks up or arrives', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                  value: true,
-                  onChanged: (val) {},
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  activeColor: AppTheme.primaryGreen,
-                  title: const Text('Exclusive Food Promos & Deals', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: const Text('Weekly meal discounts and promo code alerts', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                  value: true,
-                  onChanged: (val) {},
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  activeColor: AppTheme.primaryGreen,
-                  title: const Text('SMS Confirmation Messages', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: const Text('OTP login and receipt delivery via SMS', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                  value: true,
-                  onChanged: (val) {},
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  const Text('Notification Preferences', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  const Text('Choose alerts you want to receive from Bonchi', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppTheme.primaryGreen,
+                    title: const Text('Live Order Tracking Alerts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    subtitle: const Text('Instant updates when rider picks up or arrives', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    value: true,
+                    onChanged: (val) {},
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppTheme.primaryGreen,
+                    title: const Text('Exclusive Food Promos & Deals', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    subtitle: const Text('Weekly meal discounts and promo code alerts', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    value: true,
+                    onChanged: (val) {},
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppTheme.primaryGreen,
+                    title: const Text('SMS Confirmation Messages', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    subtitle: const Text('OTP login and receipt delivery via SMS', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    value: true,
+                    onChanged: (val) {},
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -1617,75 +1644,78 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _showSupportSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Text('24/7 Customer Care & Support', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            const Text('Our dedicated support team in Colombo is here to help', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-            const SizedBox(height: 16),
-            ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: const Color(0xFFF8FAFC),
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFDCFCE7),
-                child: Icon(Icons.support_agent_rounded, color: AppTheme.primaryGreen),
+              const SizedBox(height: 16),
+              const Text('24/7 Customer Care & Support', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              const Text('Our dedicated support team in Colombo is here to help', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+              const SizedBox(height: 16),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: const Color(0xFFF8FAFC),
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFDCFCE7),
+                  child: Icon(Icons.support_agent_rounded, color: AppTheme.primaryGreen),
+                ),
+                title: const Text('Live Chat with Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('Average response time: under 2 mins', style: TextStyle(fontSize: 12)),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Starting live chat session...'), backgroundColor: AppTheme.primaryGreen),
+                  );
+                },
               ),
-              title: const Text('Live Chat with Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: const Text('Average response time: under 2 mins', style: TextStyle(fontSize: 12)),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Starting live chat session...'), backgroundColor: AppTheme.primaryGreen),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: const Color(0xFFF8FAFC),
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFE0E7FF),
-                child: Icon(Icons.call_rounded, color: Color(0xFF4F46E5)),
+              const SizedBox(height: 8),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: const Color(0xFFF8FAFC),
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFE0E7FF),
+                  child: Icon(Icons.call_rounded, color: Color(0xFF4F46E5)),
+                ),
+                title: const Text('Call Customer Hotline', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('+94 11 234 5678 (Toll Free in Sri Lanka)', style: TextStyle(fontSize: 12)),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                onTap: () => Navigator.pop(ctx),
               ),
-              title: const Text('Call Customer Hotline', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: const Text('+94 11 234 5678 (Toll Free in Sri Lanka)', style: TextStyle(fontSize: 12)),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-              onTap: () => Navigator.pop(ctx),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: const Color(0xFFF8FAFC),
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFFEF3C7),
-                child: Icon(Icons.email_outlined, color: Color(0xFFD97706)),
+              const SizedBox(height: 8),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                tileColor: const Color(0xFFF8FAFC),
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFFEF3C7),
+                  child: Icon(Icons.email_outlined, color: Color(0xFFD97706)),
+                ),
+                title: const Text('Email Support Team', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('support@bonchi.lk', style: TextStyle(fontSize: 12)),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                onTap: () => Navigator.pop(ctx),
               ),
-              title: const Text('Email Support Team', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: const Text('support@bonchi.lk', style: TextStyle(fontSize: 12)),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-              onTap: () => Navigator.pop(ctx),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

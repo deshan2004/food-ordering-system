@@ -27,7 +27,7 @@ class _PaymentMethodsSheetContent extends StatelessWidget {
         final methods = paymentProvider.paymentMethods;
 
         return SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
