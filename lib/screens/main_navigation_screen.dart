@@ -653,13 +653,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   const Text(
-                                    'Bonchi Rewards Club',
-                                    style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                                    'Bonchi Rewards Club ',
+                                    style: TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
                                   ),
-                                  const SizedBox(width: 6),
                                   Text(
                                     '• ${loyalty.currentTier.displayName.toUpperCase()}',
                                     style: const TextStyle(color: Color(0xFFFBBF24), fontSize: 11, fontWeight: FontWeight.w900),
@@ -669,7 +669,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 '${loyalty.coinsBalance} Coins Available',
-                                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: Colors.white, fontSize: 16.5, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),

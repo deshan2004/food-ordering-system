@@ -852,8 +852,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
                                   children: [
                                     Row(
                                       children: [
-                                        Text(freshOrder.riderName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.textPrimary)),
-                                        const SizedBox(width: 6),
+                                        Flexible(
+                                          child: Text(
+                                            freshOrder.riderName,
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textPrimary),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
                                         const Icon(Icons.star, color: AppTheme.starYellow, size: 12),
                                         Text(freshOrder.riderRating, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                                       ],
@@ -862,6 +869,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
                                     Text(
                                       freshOrder.riderVehicle,
                                       style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),

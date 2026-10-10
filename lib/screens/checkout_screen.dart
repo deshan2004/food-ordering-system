@@ -326,25 +326,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    const Text('🪙', style: TextStyle(fontSize: 20)),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Bonchi Loyalty Coins',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      const Text('🪙', style: TextStyle(fontSize: 20)),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Bonchi Loyalty Coins',
+                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              'Balance: ${loyalty.coinsBalance} Coins (Worth Rs. ${loyalty.coinsBalance})',
+                                              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          'Balance: ${loyalty.coinsBalance} Coins (Worth Rs. ${loyalty.coinsBalance})',
-                                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 6),
                                 InkWell(
                                   onTap: () {
                                     Navigator.push(
@@ -353,7 +362,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     );
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(8),
@@ -387,6 +396,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: isCoinApplied ? Colors.grey.shade400 : const Color(0xFFD97706),
@@ -417,13 +427,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(Icons.bolt, color: AppTheme.primaryGreen, size: 14),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    'You will earn +${loyalty.calculateCoinsEarnable(cart.grandTotalLkr)} Coins (${loyalty.currentTier.earnMultiplier}x) on this order!',
-                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                  Expanded(
+                                    child: Text(
+                                      'You will earn +${loyalty.calculateCoinsEarnable(cart.grandTotalLkr)} Coins (${loyalty.currentTier.earnMultiplier}x) on this order!',
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                    ),
                                   ),
                                 ],
                               ),

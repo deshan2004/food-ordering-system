@@ -186,28 +186,35 @@ class _LoyaltyRewardsScreenState extends State<LoyaltyRewardsScreen> with Single
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/images/bonchi_logo.png',
-                    width: 28,
-                    height: 28,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.eco, color: Colors.white, size: 22),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'BONCHI VIP CLUB',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
+              Expanded(
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/bonchi_logo.png',
+                      width: 28,
+                      height: 28,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.eco, color: Colors.white, size: 22),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    const Flexible(
+                      child: Text(
+                        'BONCHI VIP CLUB',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                 decoration: BoxDecoration(
                   color: badgeColor,
                   borderRadius: BorderRadius.circular(16),
@@ -223,8 +230,8 @@ class _LoyaltyRewardsScreenState extends State<LoyaltyRewardsScreen> with Single
                       style: const TextStyle(
                         color: Color(0xFF0F172A),
                         fontWeight: FontWeight.w900,
-                        fontSize: 10.5,
-                        letterSpacing: 0.5,
+                        fontSize: 10,
+                        letterSpacing: 0.4,
                       ),
                     ),
                   ],
@@ -388,9 +395,13 @@ class _LoyaltyRewardsScreenState extends State<LoyaltyRewardsScreen> with Single
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Daily Streak Check-in',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    const Flexible(
+                      child: Text(
+                        'Daily Streak Check-in',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     const SizedBox(width: 6),
                     Container(
@@ -472,10 +483,15 @@ class _LoyaltyRewardsScreenState extends State<LoyaltyRewardsScreen> with Single
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Your Active Perks (${currentTier.displayName})',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.primaryGreen),
+              Expanded(
+                child: Text(
+                  'Your Active Perks (${currentTier.displayName})',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.primaryGreen),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${currentTier.earnMultiplier}x Multiplier',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFD97706)),

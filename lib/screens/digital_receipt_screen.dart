@@ -441,18 +441,30 @@ Verify: https://bonchi.lk/orders/${widget.order.orderId}
                               border: Border.all(color: Colors.grey.shade200),
                             ),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('SECURITY BARCODE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
-                                    const SizedBox(height: 4),
-                                    Text('||| | | |||| || ||| ||||||| ${order.orderId}', style: const TextStyle(fontFamily: 'Courier', fontSize: 13, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 2),
-                                    const Text('Scan for instant kitchen verification', style: TextStyle(fontSize: 9.5, color: AppTheme.textSecondary)),
-                                  ],
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('SECURITY BARCODE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '||| | | |||| || ||| ||||||| ${order.orderId}',
+                                        style: const TextStyle(fontFamily: 'Courier', fontSize: 11.5, letterSpacing: 0.8, fontWeight: FontWeight.bold),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      const Text(
+                                        'Scan for instant kitchen verification',
+                                        style: TextStyle(fontSize: 9.5, color: AppTheme.textSecondary),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
@@ -460,7 +472,7 @@ Verify: https://bonchi.lk/orders/${widget.order.orderId}
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(color: Colors.grey.shade300),
                                   ),
-                                  child: const Icon(Icons.qr_code_2_rounded, size: 36, color: AppTheme.textPrimary),
+                                  child: const Icon(Icons.qr_code_2_rounded, size: 34, color: AppTheme.textPrimary),
                                 ),
                               ],
                             ),
