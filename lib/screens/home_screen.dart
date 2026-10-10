@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/food_item.dart';
 import '../models/restaurant_model.dart';
 import '../providers/cart_provider.dart';
+import '../providers/order_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/food_service.dart';
@@ -430,6 +431,95 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+
+            // Recent Order Quick 1-Tap Re-Order Banner
+            SliverToBoxAdapter(
+              child: Consumer<OrderProvider>(
+                builder: (context, orderProvider, _) {
+                  if (orderProvider.orders.isEmpty) return const SizedBox.shrink();
+                  final latestOrder = orderProvider.orders.first;
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: AppTheme.glassDecoration(
+                        opacity: 0.94,
+                        borderRadius: 18,
+                        blurRadius: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.replay_rounded, color: AppTheme.primaryGreen, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text('Order Again ⚡', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary)),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        latestOrder.restaurantName,
+                                        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11.5),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  latestOrder.items.map((e) => '${e.quantity}x ${e.foodItem.name}').join(', '),
+                                  style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryGreen,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            onPressed: () {
+                              final cart = Provider.of<CartProvider>(context, listen: false);
+                              cart.reorderItems(latestOrder.items);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Re-ordered ${latestOrder.items.length} dishes to cart! ⚡'),
+                                  backgroundColor: AppTheme.primaryGreen,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  action: SnackBarAction(
+                                    label: 'Cart',
+                                    textColor: Colors.white,
+                                    onPressed: () => widget.onNavigateTab(2),
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('Re-Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 14)),
 

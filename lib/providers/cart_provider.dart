@@ -83,6 +83,22 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void reorderItems(List<CartItem> orderItems, {bool clearCurrentCart = false}) {
+    if (clearCurrentCart) {
+      _items.clear();
+    }
+    for (final item in orderItems) {
+      addToCart(
+        foodItem: item.foodItem,
+        selectedSpiceLevel: item.selectedSpiceLevel,
+        specialInstructions: item.specialInstructions,
+        quantity: item.quantity,
+      );
+    }
+    _recalculatePromo();
+    notifyListeners();
+  }
+
   bool applyPromoCode(String code) {
     String cleanCode = code.trim().toUpperCase();
     _promoError = null;

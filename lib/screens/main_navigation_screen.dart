@@ -23,6 +23,7 @@ import 'dart:ui';
 import '../widgets/glass_box.dart';
 import '../widgets/avatar_image_helper.dart';
 import '../widgets/payment_sheets.dart';
+import 'order_history_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -542,9 +543,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               children: [
                 _buildStatPill('Reward Points', '${user.rewardsPoints}', Icons.stars_rounded, AppTheme.starYellow),
                 const SizedBox(width: 10),
-                _buildStatPill('Orders Placed', '${orderProvider.orders.length}', Icons.receipt_long_rounded, const Color(0xFF3B82F6)),
+                _buildStatPill(
+                  'Orders Placed',
+                  '${orderProvider.orders.length}',
+                  Icons.receipt_long_rounded,
+                  const Color(0xFF3B82F6),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+                  ),
+                ),
                 const SizedBox(width: 10),
-                _buildStatPill('Saved Favs', '${favProvider.favoriteIds.length}', Icons.favorite_rounded, const Color(0xFFEF4444)),
+                _buildStatPill(
+                  'Saved Favs',
+                  '${favProvider.favoriteIds.length}',
+                  Icons.favorite_rounded,
+                  const Color(0xFFEF4444),
+                  onTap: () => setState(() => _currentIndex = 1),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -682,6 +698,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
                   const Divider(height: 1, indent: 64, endIndent: 16),
                   _buildMenuTile(
+                    icon: Icons.receipt_long_rounded,
+                    title: 'My Orders & 1-Tap Re-Order',
+                    subtitle: 'Re-order past meals, receipts & tracking',
+                    iconBgColor: const Color(0xFFEFF6FF),
+                    iconColor: const Color(0xFF2563EB),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 64, endIndent: 16),
+                  _buildMenuTile(
                     icon: Icons.payment_rounded,
                     title: 'Payment Methods',
                     subtitle: 'Saved cards & digital wallets',
@@ -789,39 +817,43 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  Widget _buildStatPill(String label, String value, IconData icon, Color color) {
+  Widget _buildStatPill(String label, String value, IconData icon, Color color, {VoidCallback? onTap}) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        decoration: AppTheme.glassDecoration(
-          opacity: 0.90,
-          borderRadius: 18,
-          blurRadius: 10,
-          shadowOpacity: 0.03,
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+          decoration: AppTheme.glassDecoration(
+            opacity: 0.90,
+            borderRadius: 18,
+            blurRadius: 10,
+            shadowOpacity: 0.03,
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 18),
               ),
-              child: Icon(icon, color: color, size: 18),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.textPrimary),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.textPrimary),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
