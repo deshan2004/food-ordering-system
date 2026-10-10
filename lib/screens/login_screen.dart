@@ -14,8 +14,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'customer@bonchi.lk');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _rememberMe = true;
@@ -27,16 +27,13 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin({String? email, String? password}) async {
-    final emailToUse = (email != null && email.isNotEmpty) ? email : _emailController.text;
-    final passwordToUse = (password != null && password.isNotEmpty) ? password : _passwordController.text;
-
-    if (email == null && !_formKey.currentState!.validate()) return;
+  void _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final success = await auth.login(
-      email: emailToUse,
-      password: passwordToUse,
+      email: _emailController.text,
+      password: _passwordController.text,
     );
 
     if (mounted) {
@@ -241,95 +238,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Log In',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.flash_on_rounded, size: 13, color: AppTheme.primaryGreen),
-                                SizedBox(width: 3),
-                                Text(
-                                  '1-Tap Ready',
-                                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Quick 1-Tap Login Profiles (No typing needed)
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(Icons.touch_app_rounded, size: 14, color: AppTheme.textSecondary),
-                                SizedBox(width: 5),
-                                Text(
-                                  'Instant 1-Tap Login (Tap to login directly):',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                _buildQuickLoginChip(
-                                  label: 'Customer',
-                                  email: 'customer@bonchi.lk',
-                                  icon: Icons.person_rounded,
-                                  color: AppTheme.primaryGreen,
-                                ),
-                                const SizedBox(width: 6),
-                                _buildQuickLoginChip(
-                                  label: 'Kitchen',
-                                  email: 'restaurant@bonchi.lk',
-                                  icon: Icons.soup_kitchen_rounded,
-                                  color: Colors.orange.shade700,
-                                ),
-                                const SizedBox(width: 6),
-                                _buildQuickLoginChip(
-                                  label: 'Rider',
-                                  email: 'driver@bonchi.lk',
-                                  icon: Icons.two_wheeler_rounded,
-                                  color: const Color(0xFF0284C7),
-                                ),
-                                const SizedBox(width: 6),
-                                _buildQuickLoginChip(
-                                  label: 'Admin',
-                                  email: 'admin@bonchi.lk',
-                                  icon: Icons.admin_panel_settings_rounded,
-                                  color: const Color(0xFF6366F1),
-                                ),
-                              ],
-                            ),
-                          ],
+                      const Text(
+                        'Log In',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Enter your email and password to access your account.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
                       // Email Field
                       const Text(
@@ -656,64 +581,5 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  Widget _buildQuickLoginChip({
-    required String label,
-    required String email,
-    required IconData icon,
-    required Color color,
-  }) {
-    final isSelected = _emailController.text.trim().toLowerCase() == email.toLowerCase();
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            setState(() {
-              _emailController.text = email;
-              _passwordController.text = 'password123';
-            });
-            _handleLogin(email: email, password: 'password123');
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-            decoration: BoxDecoration(
-              color: isSelected ? color : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? color : Colors.grey.shade300,
-                width: isSelected ? 1.5 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 17, color: isSelected ? Colors.white : color),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : AppTheme.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
+
