@@ -146,8 +146,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
-      body: SafeArea(
-        child: SingleChildScrollView(
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,18 +260,62 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20),
 
                       // Email Field
-                      const Text(
-                        'Email Address',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Email Address',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                _emailController.text = 'customer@bonchi.lk';
+                                _passwordController.text = 'password123';
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDCFCE7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.flash_on_rounded, size: 12, color: AppTheme.primaryGreen),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'Fill Demo',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        enableInteractiveSelection: true,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        cursorColor: AppTheme.primaryGreen,
                         decoration: InputDecoration(
                           hintText: 'name@example.com',
                           hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
@@ -314,8 +361,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
+                        textInputAction: TextInputAction.done,
+                        enableInteractiveSelection: true,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        cursorColor: AppTheme.primaryGreen,
                         decoration: InputDecoration(
-                          hintText: '••••••••',
+                          hintText: 'Enter your password',
                           hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
                           prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primaryGreen, size: 20),
                           suffixIcon: IconButton(
@@ -529,6 +584,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
