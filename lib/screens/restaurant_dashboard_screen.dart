@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
+import '../models/chat_message.dart';
 import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
 import '../theme/app_theme.dart';
 import '../models/user_model.dart';
+import 'order_chat_screen.dart';
 
 class RestaurantDashboardScreen extends StatefulWidget {
   const RestaurantDashboardScreen({super.key});
@@ -555,6 +557,37 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                         style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => OrderChatScreen(
+                              order: order,
+                              initialTab: ChatParticipantType.restaurant,
+                            ),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.orange.shade200),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.chat_bubble_outline_rounded, size: 12, color: Colors.orange.shade800),
+                            const SizedBox(width: 4),
+                            Text('Chat', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange.shade800)),
+                          ],
+                        ),
                       ),
                     ),
                   ],

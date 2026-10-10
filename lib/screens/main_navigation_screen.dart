@@ -17,6 +17,7 @@ import 'restaurant_dashboard_screen.dart';
 import 'driver_dashboard_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'map_location_picker_screen.dart';
+import 'order_chat_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:ui';
 import '../widgets/glass_box.dart';
@@ -381,6 +382,38 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => OrderChatScreen(order: activeOrder),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.chat_bubble_outline_rounded, size: 13, color: AppTheme.primaryGreen),
+                              SizedBox(width: 4),
+                              Text('Chat', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.primaryGreen),
                     ],
                   ),

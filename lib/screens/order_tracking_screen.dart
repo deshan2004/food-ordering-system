@@ -4,10 +4,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
+import '../models/chat_message.dart';
 import '../providers/order_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
+import 'order_chat_screen.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final OrderModel order;
@@ -420,16 +422,49 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               ),
 
                               // Call & Message buttons
-                              CircleAvatar(
-                                radius: 17,
-                                backgroundColor: Colors.white,
-                                child: Icon(Icons.phone_outlined, color: Colors.grey.shade700, size: 16),
+                              InkWell(
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          const Icon(Icons.phone_in_talk_rounded, color: Colors.white, size: 20),
+                                          const SizedBox(width: 8),
+                                          Expanded(child: Text('Calling rider ${freshOrder.riderName} (+94 77 123 4567)... 📞')),
+                                        ],
+                                      ),
+                                      backgroundColor: AppTheme.primaryGreen,
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: CircleAvatar(
+                                  radius: 17,
+                                  backgroundColor: Colors.white,
+                                  child: Icon(Icons.phone_outlined, color: Colors.grey.shade700, size: 16),
+                                ),
                               ),
                               const SizedBox(width: 8),
-                              const CircleAvatar(
-                                radius: 17,
-                                backgroundColor: AppTheme.primaryGreen,
-                                child: Icon(Icons.message_outlined, color: Colors.white, size: 16),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => OrderChatScreen(
+                                        order: freshOrder,
+                                        initialTab: ChatParticipantType.rider,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: const CircleAvatar(
+                                  radius: 17,
+                                  backgroundColor: AppTheme.primaryGreen,
+                                  child: Icon(Icons.message_outlined, color: Colors.white, size: 16),
+                                ),
                               ),
                             ],
                           ),

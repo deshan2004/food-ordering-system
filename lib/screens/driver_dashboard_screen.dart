@@ -3,10 +3,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' hide Path;
 import 'package:provider/provider.dart';
 import '../models/order.dart';
+import '../models/chat_message.dart';
 import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
 import '../theme/app_theme.dart';
 import '../models/user_model.dart';
+import 'order_chat_screen.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -874,10 +876,54 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
                               maxLines: 2,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isHeadingToRestaurant ? 'Contact Hotel Kitchen' : 'Phone: ${order.customerPhone}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF0284C7)),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Text(
+                                  isHeadingToRestaurant ? 'Contact Hotel' : 'Phone: ${order.customerPhone}',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF0284C7)),
+                                ),
+                                const Spacer(),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => OrderChatScreen(
+                                          order: order,
+                                          initialTab: isHeadingToRestaurant
+                                              ? ChatParticipantType.restaurant
+                                              : ChatParticipantType.rider,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE0F2FE),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFFBAE6FD)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isHeadingToRestaurant ? Icons.soup_kitchen_rounded : Icons.chat_rounded,
+                                          size: 13,
+                                          color: const Color(0xFF0284C7),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          isHeadingToRestaurant ? 'Chat Kitchen' : 'Chat Customer',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
