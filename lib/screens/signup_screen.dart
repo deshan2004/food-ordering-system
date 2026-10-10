@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'main_navigation_screen.dart';
+import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -64,7 +65,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 Icon(Icons.stars, color: AppTheme.starYellow),
                 SizedBox(width: 10),
-                Text('Welcome! You earned 200 Bonchi Reward Points!'),
+                Text('Welcome! You earned 200 Bonchi Reward Points! 🎉'),
               ],
             ),
             backgroundColor: AppTheme.primaryGreen,
@@ -81,7 +82,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       } else if (auth.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(auth.errorMessage!),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(child: Text(auth.errorMessage!)),
+              ],
+            ),
             backgroundColor: AppTheme.accentRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -91,69 +98,108 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  void _handleSocialSignUp(String provider) async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    await auth.signUp(
+      name: '$provider User',
+      email: '${provider.toLowerCase()}.user@bonchi.lk',
+      phone: '+94 77 123 4567',
+      password: 'password123',
+    );
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.textPrimary, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Create Account',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.textPrimary),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Welcome Banner
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryGreen.withValues(alpha: 0.1),
-                      AppTheme.accentAmber.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.2)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.card_giftcard, color: AppTheme.primaryGreen, size: 32),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sign Up Bonus! 🎉',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.textPrimary),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Get 200 free reward points on your first order.',
-                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              // Top Navigation Row with Back Button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+                        );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.lightBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
+                      child: const Icon(Icons.arrow_back_rounded, color: AppTheme.textPrimary, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 42),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Top Brand Header with Mascot Logo
+              Center(
+                child: Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/bonchi_logo.png',
+                      height: 95,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Bonchi',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primaryGreen,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Create an account! Join Bonchi for fresh meals',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: AppTheme.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              // Form Container
+              // Sign Up Form Card
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -172,14 +218,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Full Name
-                      _buildInputLabel('Full Name'),
+                      const Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Full Name Field
+                      const Text(
+                        'Full Name',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _nameController,
                         textCapitalization: TextCapitalization.words,
                         decoration: _buildInputDecoration(
-                          hint: 'e.g. Deshan Siriwardhana',
+                          hint: 'e.g. Kasun Perera',
                           icon: Icons.person_outline,
                         ),
                         validator: (val) {
@@ -189,10 +252,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
 
-                      // Email Address
-                      _buildInputLabel('Email Address'),
+                      // Email Field
+                      const Text(
+                        'Email Address',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _emailController,
@@ -211,10 +281,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
 
-                      // Phone Number
-                      _buildInputLabel('Mobile Phone Number'),
+                      // Phone Number Field
+                      const Text(
+                        'Mobile Phone Number',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _phoneController,
@@ -230,10 +307,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
 
-                      // Password
-                      _buildInputLabel('Password'),
+                      // Password Field
+                      const Text(
+                        'Password',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _passwordController,
@@ -260,10 +344,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
 
-                      // Confirm Password
-                      _buildInputLabel('Confirm Password'),
+                      // Confirm Password Field
+                      const Text(
+                        'Confirm Password',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _confirmPasswordController,
@@ -351,7 +442,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Submit Button
+                      // Sign Up Action Button
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -379,14 +470,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Create Account',
+                                      'Sign Up',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     SizedBox(width: 8),
-                                    Icon(Icons.check_circle_outline, size: 20),
+                                    Icon(Icons.arrow_forward_rounded, size: 20),
                                   ],
                                 ),
                         ),
@@ -397,6 +488,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Social Logins Divider
+              Row(
+                children: [
+                  Expanded(child: Container(height: 1, color: AppTheme.lightBorder)),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR CONTINUE WITH',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Container(height: 1, color: AppTheme.lightBorder)),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Social Sign Up Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSocialButton(
+                      icon: Icons.g_mobiledata_rounded,
+                      label: 'Google',
+                      color: const Color(0xFFEA4335),
+                      onTap: () => _handleSocialSignUp('Google'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildSocialButton(
+                      icon: Icons.apple,
+                      label: 'Apple',
+                      color: Colors.black,
+                      onTap: () => _handleSocialSignUp('Apple'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+
               // Already Have Account Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -406,7 +542,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      }
+                    },
                     child: const Text(
                       'Log In',
                       style: TextStyle(
@@ -418,21 +563,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // Continue as Guest button
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+                  );
+                },
+                child: const Text(
+                  'Continue as Guest',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInputLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: AppTheme.textPrimary,
       ),
     );
   }
@@ -461,6 +614,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 2),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.lightBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
