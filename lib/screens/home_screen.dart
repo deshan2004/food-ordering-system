@@ -433,124 +433,152 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 14)),
 
-            // Filter Mode Switcher Row: "By Country / Cuisine" vs "By Food Type"
+            // Segmented Filter Mode Controller (Unified Frosted Capsule Track)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _filterMode = 'country';
-                            _selectedCategory = 'All';
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: _filterMode == 'country'
-                                ? AppTheme.primaryGreen
-                                : Colors.white.withValues(alpha: 0.72),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: _filterMode == 'country'
-                                  ? AppTheme.primaryGreen
-                                  : Colors.white.withValues(alpha: 0.95),
-                              width: 1.4,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _filterMode == 'country'
-                                    ? AppTheme.primaryGreen.withValues(alpha: 0.25)
-                                    : Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(26),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.65),
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          width: 1.4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('🌍', style: TextStyle(fontSize: 15)),
-                              const SizedBox(width: 6),
-                              Text(
-                                'By Country',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: _filterMode == 'country' ? Colors.white : AppTheme.textPrimary,
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _filterMode = 'country';
+                                  _selectedCategory = 'All';
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 240),
+                                curve: Curves.easeInOutCubic,
+                                decoration: BoxDecoration(
+                                  gradient: _filterMode == 'country'
+                                      ? const LinearGradient(
+                                          colors: [Color(0xFF059669), Color(0xFF10B981)],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        )
+                                      : null,
+                                  color: _filterMode == 'country' ? null : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(22),
+                                  boxShadow: _filterMode == 'country'
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color(0xFF059669).withValues(alpha: 0.35),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text('🌍', style: TextStyle(fontSize: 15)),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'By Country',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.2,
+                                        color: _filterMode == 'country'
+                                            ? Colors.white
+                                            : const Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _filterMode = 'category';
-                            _selectedCountry = 'All';
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: _filterMode == 'category'
-                                ? AppTheme.primaryGreen
-                                : Colors.white.withValues(alpha: 0.72),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: _filterMode == 'category'
-                                  ? AppTheme.primaryGreen
-                                  : Colors.white.withValues(alpha: 0.95),
-                              width: 1.4,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _filterMode == 'category'
-                                    ? AppTheme.primaryGreen.withValues(alpha: 0.25)
-                                    : Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('🍲', style: TextStyle(fontSize: 15)),
-                              const SizedBox(width: 6),
-                              Text(
-                                'By Food Type',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: _filterMode == 'category' ? Colors.white : AppTheme.textPrimary,
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _filterMode = 'category';
+                                  _selectedCountry = 'All';
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 240),
+                                curve: Curves.easeInOutCubic,
+                                decoration: BoxDecoration(
+                                  gradient: _filterMode == 'category'
+                                      ? const LinearGradient(
+                                          colors: [Color(0xFF059669), Color(0xFF10B981)],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        )
+                                      : null,
+                                  color: _filterMode == 'category' ? null : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(22),
+                                  boxShadow: _filterMode == 'category'
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color(0xFF059669).withValues(alpha: 0.35),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text('🍲', style: TextStyle(fontSize: 15)),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'By Food Type',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.2,
+                                        color: _filterMode == 'category'
+                                            ? Colors.white
+                                            : const Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-            // Dynamic Horizontal Scroll Selector (Country Cuisines OR Food Categories)
+            // Sleek Horizontal Pill Chips (Country Cuisines OR Food Categories)
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 82,
+                height: 50,
                 child: _filterMode == 'country'
                     ? ListView.builder(
                         scrollDirection: Axis.horizontal,
@@ -566,46 +594,70 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _selectedCountry = c['country']!;
                               });
                             },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(25),
                                 child: BackdropFilter(
                                   filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                     decoration: BoxDecoration(
+                                      gradient: isSelected
+                                          ? const LinearGradient(
+                                              colors: [Color(0xFF059669), Color(0xFF10B981)],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            )
+                                          : null,
                                       color: isSelected
-                                          ? const Color(0xFFECFDF5).withValues(alpha: 0.92)
-                                          : Colors.white.withValues(alpha: 0.68),
-                                      borderRadius: BorderRadius.circular(18),
+                                          ? null
+                                          : Colors.white.withValues(alpha: 0.75),
+                                      borderRadius: BorderRadius.circular(25),
                                       border: Border.all(
                                         color: isSelected
-                                            ? AppTheme.primaryGreen
+                                            ? const Color(0xFF34D399)
                                             : Colors.white.withValues(alpha: 0.95),
-                                        width: isSelected ? 1.8 : 1.4,
+                                        width: isSelected ? 1.5 : 1.2,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
                                           color: isSelected
-                                              ? AppTheme.primaryGreen.withValues(alpha: 0.15)
-                                              : Colors.black.withValues(alpha: 0.04),
-                                          blurRadius: 10,
+                                              ? const Color(0xFF059669).withValues(alpha: 0.30)
+                                              : Colors.black.withValues(alpha: 0.03),
+                                          blurRadius: isSelected ? 10 : 6,
                                           offset: const Offset(0, 3),
                                         ),
                                       ],
                                     ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(c['flag']!, style: const TextStyle(fontSize: 22)),
-                                        const SizedBox(height: 5),
+                                        Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? Colors.white.withValues(alpha: 0.22)
+                                                : const Color(0xFFF1F5F9),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              c['flag']!,
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
                                         Text(
                                           c['name']!,
                                           style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                            color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                                            fontSize: 13,
+                                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                            letterSpacing: -0.2,
+                                            color: isSelected ? Colors.white : AppTheme.textPrimary,
                                           ),
                                         ),
                                       ],
@@ -624,6 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, index) {
                           final cat = FoodService.categories[index];
                           final isSelected = _selectedCategory == cat['name'];
+                          final badge = cat['badge'] as String;
 
                           return GestureDetector(
                             onTap: () {
@@ -631,67 +684,94 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _selectedCategory = cat['name'] as String;
                               });
                             },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(25),
                                 child: BackdropFilter(
                                   filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                     decoration: BoxDecoration(
+                                      gradient: isSelected
+                                          ? const LinearGradient(
+                                              colors: [Color(0xFF059669), Color(0xFF10B981)],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            )
+                                          : null,
                                       color: isSelected
-                                          ? const Color(0xFFECFDF5).withValues(alpha: 0.92)
-                                          : Colors.white.withValues(alpha: 0.68),
-                                      borderRadius: BorderRadius.circular(18),
+                                          ? null
+                                          : Colors.white.withValues(alpha: 0.75),
+                                      borderRadius: BorderRadius.circular(25),
                                       border: Border.all(
                                         color: isSelected
-                                            ? AppTheme.primaryGreen
+                                            ? const Color(0xFF34D399)
                                             : Colors.white.withValues(alpha: 0.95),
-                                        width: isSelected ? 1.8 : 1.4,
+                                        width: isSelected ? 1.5 : 1.2,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
                                           color: isSelected
-                                              ? AppTheme.primaryGreen.withValues(alpha: 0.15)
-                                              : Colors.black.withValues(alpha: 0.04),
-                                          blurRadius: 10,
+                                              ? const Color(0xFF059669).withValues(alpha: 0.30)
+                                              : Colors.black.withValues(alpha: 0.03),
+                                          blurRadius: isSelected ? 10 : 6,
                                           offset: const Offset(0, 3),
                                         ),
                                       ],
                                     ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(cat['icon'] as String, style: const TextStyle(fontSize: 18)),
-                                            if ((cat['badge'] as String).isNotEmpty) ...[
-                                              const SizedBox(width: 4),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                                decoration: BoxDecoration(
-                                                  color: (cat['badge'] as String).contains('Hot') ? AppTheme.accentRed : AppTheme.accentAmber,
-                                                  borderRadius: BorderRadius.circular(6),
-                                                ),
-                                                child: Text(
-                                                  cat['badge'] as String,
-                                                  style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ],
-                                          ],
+                                        Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? Colors.white.withValues(alpha: 0.22)
+                                                : const Color(0xFFF1F5F9),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              cat['icon'] as String,
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                          ),
                                         ),
-                                        const SizedBox(height: 5),
+                                        const SizedBox(width: 8),
                                         Text(
                                           cat['name'] as String,
                                           style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                            color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                                            fontSize: 13,
+                                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                            letterSpacing: -0.2,
+                                            color: isSelected ? Colors.white : AppTheme.textPrimary,
                                           ),
                                         ),
+                                        if (badge.isNotEmpty) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? Colors.white.withValues(alpha: 0.25)
+                                                  : (badge.contains('Hot')
+                                                      ? AppTheme.accentRed
+                                                      : AppTheme.accentAmber),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              badge,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ),
