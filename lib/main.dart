@@ -6,6 +6,7 @@ import 'providers/order_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/payment_provider.dart';
 import 'providers/chat_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/main_navigation_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -21,6 +22,7 @@ class FoodOrderingApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
@@ -28,13 +30,17 @@ class FoodOrderingApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
-      child: MaterialApp(
-        title: 'Bonchi - Sri Lankan Food Ordering',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.light,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        home: const MainNavigationScreen(),
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, _) {
+          return MaterialApp(
+            title: settings.tr('app_title'),
+            debugShowCheckedModeBanner: false,
+            themeMode: settings.themeMode,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            home: const MainNavigationScreen(),
+          );
+        },
       ),
     );
   }

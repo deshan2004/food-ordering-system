@@ -5,6 +5,7 @@ import '../models/restaurant_model.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/favorites_provider.dart';
+import '../providers/settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/food_service.dart';
 import '../services/location_service.dart';
@@ -59,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final favProvider = Provider.of<FavoritesProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final currentUser = authProvider.currentUser;
 
     List<FoodItem> allAvailableItems = _apiFoodItems.isNotEmpty ? _apiFoodItems : FoodService.mockFoodItems;
@@ -254,8 +256,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               Flexible(
                                 child: Text(
                                   currentUser != null
-                                      ? 'Kohomada, ${currentUser.name.split(' ').first}!'
-                                      : 'Ayubowan, Guest!',
+                                      ? (settings.isSinhala ? 'කොහොමද, ${currentUser.name.split(' ').first}!' : 'Kohomada, ${currentUser.name.split(' ').first}!')
+                                      : settings.tr('greeting_guest'),
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w900,
@@ -271,9 +273,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            "Bada ginida? Let's get you something tasty!",
-                            style: TextStyle(
+                          Text(
+                            settings.tr('sub_greeting'),
+                            style: const TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF475569),
                               height: 1.3,

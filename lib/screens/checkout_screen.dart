@@ -11,6 +11,7 @@ import '../providers/payment_provider.dart';
 import '../models/payment_method_model.dart';
 import '../widgets/payment_sheets.dart';
 import '../widgets/coupon_sheet.dart';
+import '../providers/settings_provider.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -50,11 +51,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final theme = Theme.of(context);
     final cart = Provider.of<CartProvider>(context);
     final auth = Provider.of<AuthProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final currentAddress = _deliveryAddress ?? (auth.currentUser?.address ?? 'No. 45, Galle Road, Colombo 03');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(settings.tr('checkout'), style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: cart.items.isEmpty
           ? const Center(child: Text('No items to checkout'))
@@ -477,7 +479,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           (route) => route.isFirst,
                         );
                       },
-                      child: const Text('Place Order Now', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Text(settings.tr('place_order'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],

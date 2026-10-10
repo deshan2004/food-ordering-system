@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/settings_provider.dart';
 import '../models/food_item.dart';
 import '../theme/app_theme.dart';
 import 'food_detail_screen.dart';
@@ -25,6 +26,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     final favProvider = Provider.of<FavoritesProvider>(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
+    final settings = Provider.of<SettingsProvider>(context);
     final allFavorites = favProvider.favoriteFoodItems;
 
     // Filter by category
@@ -42,7 +44,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text('My Favorites', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(settings.tr('tab_favorites'), style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -194,7 +196,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   },
                   icon: const Icon(Icons.add_shopping_cart_rounded, size: 20),
                   label: Text(
-                    'Add All to Cart (${_formatLkr(totalFavoritesSum)})',
+                    '${settings.tr('add_all_cart')} (${_formatLkr(totalFavoritesSum)})',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ),

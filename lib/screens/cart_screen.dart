@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/coupon_sheet.dart';
 import 'checkout_screen.dart';
@@ -30,10 +31,11 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Cart', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(settings.tr('tab_cart'), style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           if (cart.items.isNotEmpty)
             TextButton.icon(
@@ -268,12 +270,10 @@ class _CartScreenState extends State<CartScreen> {
                                 MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                               );
                             },
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text('Proceed to Checkout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                SizedBox(width: 8),
-                                Icon(Icons.arrow_forward, size: 20),
+                                Text('${settings.tr('checkout')} ➔', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),

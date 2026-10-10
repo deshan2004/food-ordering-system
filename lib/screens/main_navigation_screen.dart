@@ -24,6 +24,7 @@ import '../widgets/glass_box.dart';
 import '../widgets/avatar_image_helper.dart';
 import '../widgets/payment_sheets.dart';
 import 'order_history_screen.dart';
+import '../providers/settings_provider.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -55,6 +56,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     final cart = Provider.of<CartProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final activeOrder = orderProvider.activeOrder;
 
     final List<Widget> screens = [
@@ -145,12 +147,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ],
                 ),
                 activeIcon: const Icon(Icons.home, color: AppTheme.primaryGreen, size: 22),
-                label: 'Home',
+                label: settings.tr('tab_home'),
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.search, size: 22),
-                activeIcon: Icon(Icons.search, color: AppTheme.primaryGreen, size: 22),
-                label: 'Explore',
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.favorite_border, size: 22),
+                activeIcon: const Icon(Icons.favorite, color: AppTheme.primaryGreen, size: 22),
+                label: settings.tr('tab_favorites'),
               ),
               BottomNavigationBarItem(
                 icon: Badge(
@@ -165,12 +167,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   backgroundColor: AppTheme.accentAmber,
                   child: const Icon(Icons.receipt_long, color: AppTheme.primaryGreen, size: 22),
                 ),
-                label: 'Orders',
+                label: settings.tr('tab_cart'),
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline, size: 22),
-                activeIcon: Icon(Icons.person, color: AppTheme.primaryGreen, size: 22),
-                label: 'Profile',
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.person_outline, size: 22),
+                activeIcon: const Icon(Icons.person, color: AppTheme.primaryGreen, size: 22),
+                label: settings.tr('tab_profile'),
               ),
             ],
           ),
@@ -183,12 +185,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   Widget _buildProfileScreen(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final user = auth.currentUser;
 
     if (!auth.isAuthenticated || user == null) {
       return Scaffold(
+        backgroundColor: settings.isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground,
         appBar: AppBar(
-          title: const Text('My Account', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(settings.tr('tab_profile'), style: const TextStyle(fontWeight: FontWeight.bold)),
           automaticallyImplyLeading: false,
         ),
         body: SafeArea(
@@ -206,15 +210,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   child: const Icon(Icons.person_outline, size: 64, color: AppTheme.primaryGreen),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Welcome to Bonchi',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                Text(
+                  settings.isSinhala ? 'Bonchi වෙත සාදරයෙන් පිළිගනිමු' : 'Welcome to Bonchi',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: settings.isDarkMode ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Log in or create an account to save your delivery addresses, view order history, and collect reward points!',
-                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary, height: 1.4),
+                Text(
+                  settings.isSinhala
+                      ? 'ඇණවුම් ඉතිහාසය බැලීමට සහ ඇණවුම් කිරීමට කරුණාකර ප්‍රවේශ වන්න!'
+                      : 'Log in or create an account to save your delivery addresses, view order history, and collect reward points!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: settings.isDarkMode ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                    height: 1.4,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -233,7 +247,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
-                    child: const Text('Log In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      settings.isSinhala ? 'ඇතුල් වන්න (Log In)' : 'Log In',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -252,7 +269,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         MaterialPageRoute(builder: (_) => const SignUpScreen()),
                       );
                     },
-                    child: const Text('Create Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      settings.isSinhala ? 'ගිණුමක් සාදන්න' : 'Create Account',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],
@@ -267,20 +287,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final activeOrder = orderProvider.activeOrder;
 
     return Scaffold(
-      backgroundColor: AppTheme.lightBackground,
+      backgroundColor: settings.isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        title: const Padding(
-          padding: EdgeInsets.only(left: 4),
+        title: Padding(
+          padding: const EdgeInsets.only(left: 4),
           child: Text(
-            'My Profile',
+            settings.tr('tab_profile'),
             style: TextStyle(
               fontWeight: FontWeight.w900,
               fontSize: 22,
-              color: AppTheme.textPrimary,
+              color: settings.isDarkMode ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
               letterSpacing: -0.5,
             ),
           ),
@@ -733,6 +753,40 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ),
               child: Column(
                 children: [
+                  _buildMenuTile(
+                    icon: Icons.dark_mode_rounded,
+                    title: settings.tr('appearance'),
+                    subtitle: settings.tr('appearance_subtitle'),
+                    iconBgColor: settings.isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                    iconColor: settings.isDarkMode ? AppTheme.accentAmber : const Color(0xFF334155),
+                    onTap: () => settings.toggleTheme(),
+                    trailing: Switch.adaptive(
+                      value: settings.isDarkMode,
+                      activeColor: AppTheme.primaryGreen,
+                      onChanged: (_) => settings.toggleTheme(),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 64, endIndent: 16),
+                  _buildMenuTile(
+                    icon: Icons.translate_rounded,
+                    title: settings.tr('language'),
+                    subtitle: settings.isSinhala ? 'සිංහල (Sinhala)' : 'English',
+                    iconBgColor: const Color(0xFFFEF3C7),
+                    iconColor: const Color(0xFFD97706),
+                    onTap: () => _showLanguageModal(context, settings),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        settings.isSinhala ? '🇱🇰 සිංහල' : '🇬🇧 EN',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.primaryGreen),
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 64, endIndent: 16),
                   _buildMenuTile(
                     icon: Icons.notifications_none_rounded,
                     title: 'Notification Preferences',
@@ -1544,6 +1598,81 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             child: const Text('Apply'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLanguageModal(BuildContext context, SettingsProvider settings) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Select Language / භාෂාව තෝරන්න',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Choose your preferred language for menus and ordering',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
+            ),
+            const SizedBox(height: 18),
+            ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                  color: !settings.isSinhala ? AppTheme.primaryGreen : Colors.grey.shade200,
+                  width: !settings.isSinhala ? 2 : 1,
+                ),
+              ),
+              tileColor: !settings.isSinhala ? const Color(0xFFECFDF5) : Colors.transparent,
+              leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
+              title: const Text('English (Default)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text('All titles and menus in English', style: TextStyle(fontSize: 12)),
+              trailing: !settings.isSinhala ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen) : null,
+              onTap: () {
+                settings.setLanguage('en');
+                Navigator.pop(ctx);
+              },
+            ),
+            const SizedBox(height: 10),
+            ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                  color: settings.isSinhala ? AppTheme.primaryGreen : Colors.grey.shade200,
+                  width: settings.isSinhala ? 2 : 1,
+                ),
+              ),
+              tileColor: settings.isSinhala ? const Color(0xFFECFDF5) : Colors.transparent,
+              leading: const Text('🇱🇰', style: TextStyle(fontSize: 24)),
+              title: const Text('සිංහල (Sinhala)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text('සියලුම ආහාර සහ මෙනු සිංහලෙන්', style: TextStyle(fontSize: 12)),
+              trailing: settings.isSinhala ? const Icon(Icons.check_circle, color: AppTheme.primaryGreen) : null,
+              onTap: () {
+                settings.setLanguage('si');
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
