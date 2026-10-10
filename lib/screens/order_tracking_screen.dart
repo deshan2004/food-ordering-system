@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,8 +9,27 @@ import '../models/chat_message.dart';
 import '../providers/order_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/location_service.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import 'order_chat_screen.dart';
+
+class _RiderRouteProgress {
+  final LatLng currentPosition;
+  final double bearing;
+  final double remainingDistanceKm;
+  final int remainingEtaMinutes;
+  final List<LatLng> completedPath;
+  final List<LatLng> remainingPath;
+
+  _RiderRouteProgress({
+    required this.currentPosition,
+    required this.bearing,
+    required this.remainingDistanceKm,
+    required this.remainingEtaMinutes,
+    required this.completedPath,
+    required this.remainingPath,
+  });
+}
 
 class OrderTrackingScreen extends StatefulWidget {
   final OrderModel order;
@@ -21,20 +41,141 @@ class OrderTrackingScreen extends StatefulWidget {
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
 }
 
-class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
+class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   double _currentZoom = 14.8;
   LatLng? _userGpsLocation;
 
   // Real Street Coordinates in Colombo
   static const LatLng _restaurantLocation = LatLng(6.9085, 79.8512); // Pilawos Kollupitiya
-  static const LatLng _riderLocation = LatLng(6.9048, 79.8530);      // Rider en route on Galle Road
   static const LatLng _defaultDestination = LatLng(6.9015, 79.8560); // Flower Road Col 07
+
+  // Animation Controllers for Live Rider movement and pulse effect
+  late final AnimationController _riderAnimController;
+  late final AnimationController _pulseController;
+
+  double _simSpeed = 1.0;
+  bool _autoFollow = true;
+  bool _hasTriggeredArrival = false;
 
   @override
   void initState() {
     super.initState();
     _fetchUserLiveGps();
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    _riderAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 40),
+    );
+
+    if (widget.order.status != OrderStatus.delivered) {
+      _riderAnimController.forward();
+    } else {
+      _riderAnimController.value = 1.0;
+    }
+
+    _riderAnimController.addListener(() {
+      if (mounted) {
+        setState(() {});
+        if (_autoFollow) {
+          final progress = _currentRouteProgress;
+          _mapController.move(progress.currentPosition, _currentZoom);
+        }
+      }
+    });
+
+    _riderAnimController.addStatusListener((status) {
+      if (status == AnimationStatus.completed && !_hasTriggeredArrival) {
+        _handleRiderArrival();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _riderAnimController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  void _handleRiderArrival() {
+    if (_hasTriggeredArrival) return;
+    _hasTriggeredArrival = true;
+
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final freshOrder = orderProvider.orders.firstWhere(
+      (o) => o.orderId == widget.order.orderId,
+      orElse: () => widget.order,
+    );
+
+    if (freshOrder.status != OrderStatus.delivered) {
+      orderProvider.updateOrderStatus(freshOrder.orderId, OrderStatus.delivered);
+      NotificationService.instance.showOrderNotification(
+        orderId: freshOrder.orderId,
+        title: 'Bonchi Rider Arrived! 🛵🎉',
+        body: '${freshOrder.riderName} is outside with your hot order from Pilawos!',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${freshOrder.riderName} has arrived at your door! 🛵 Enjoy your meal!',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppTheme.primaryGreen,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
+  }
+
+  void _setSpeed(double newSpeed) {
+    setState(() {
+      _simSpeed = newSpeed;
+      final currentProgress = _riderAnimController.value;
+      _riderAnimController.duration = Duration(milliseconds: (40000 / _simSpeed).round());
+      if (_riderAnimController.isAnimating) {
+        _riderAnimController.stop();
+        _riderAnimController.forward(from: currentProgress);
+      }
+    });
+  }
+
+  void _togglePlayPause() {
+    setState(() {
+      if (_riderAnimController.isAnimating) {
+        _riderAnimController.stop();
+      } else {
+        if (_riderAnimController.isCompleted) {
+          _hasTriggeredArrival = false;
+          _riderAnimController.forward(from: 0.0);
+        } else {
+          _riderAnimController.forward();
+        }
+      }
+    });
+  }
+
+  void _restartSimulation() {
+    setState(() {
+      _hasTriggeredArrival = false;
+      _riderAnimController.forward(from: 0.0);
+    });
   }
 
   Future<void> _fetchUserLiveGps() async {
@@ -58,30 +199,132 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     return _userGpsLocation ?? _defaultDestination;
   }
 
-  List<LatLng> get _routePoints => [
-        _restaurantLocation,
-        const LatLng(6.9072, 79.8518),
-        _riderLocation,
-        const LatLng(6.9032, 79.8542),
-        _targetDestination,
-      ];
+  List<LatLng> get _fullRouteWaypoints {
+    return [
+      _restaurantLocation,                // Pilawos Kollupitiya
+      const LatLng(6.9073, 79.8517),      // Galle Road past St. Anthony's
+      const LatLng(6.9058, 79.8523),      // Galle Road near Liberty Arcade
+      const LatLng(6.9048, 79.8530),      // Dharmapala Mawatha turn
+      const LatLng(6.9040, 79.8542),      // Along Green Path
+      const LatLng(6.9030, 79.8552),      // Approach Flower Road
+      const LatLng(6.9022, 79.8558),      // Flower Road junction
+      _targetDestination,                 // Customer Doorstep
+    ];
+  }
+
+  static double _calculateDistanceMeters(LatLng p1, LatLng p2) {
+    const double earthRadius = 6371000;
+    final double dLat = (p2.latitude - p1.latitude) * (math.pi / 180.0);
+    final double dLng = (p2.longitude - p1.longitude) * (math.pi / 180.0);
+    final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(p1.latitude * (math.pi / 180.0)) *
+            math.cos(p2.latitude * (math.pi / 180.0)) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadius * c;
+  }
+
+  static double _calculateBearing(LatLng start, LatLng end) {
+    final double lat1 = start.latitude * (math.pi / 180.0);
+    final double lon1 = start.longitude * (math.pi / 180.0);
+    final double lat2 = end.latitude * (math.pi / 180.0);
+    final double lon2 = end.longitude * (math.pi / 180.0);
+    final double dLon = lon2 - lon1;
+
+    final double y = math.sin(dLon) * math.cos(lat2);
+    final double x = math.cos(lat1) * math.sin(lat2) -
+        math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
+    final double radians = math.atan2(y, x);
+    return (radians * (180.0 / math.pi) + 360.0) % 360.0;
+  }
+
+  _RiderRouteProgress get _currentRouteProgress {
+    final points = _fullRouteWaypoints;
+    if (points.length < 2) {
+      return _RiderRouteProgress(
+        currentPosition: _restaurantLocation,
+        bearing: 0.0,
+        remainingDistanceKm: 0.0,
+        remainingEtaMinutes: 0,
+        completedPath: points,
+        remainingPath: points,
+      );
+    }
+
+    final List<double> segmentLengths = [];
+    double totalDistance = 0.0;
+    for (int i = 0; i < points.length - 1; i++) {
+      final d = _calculateDistanceMeters(points[i], points[i + 1]);
+      segmentLengths.add(d);
+      totalDistance += d;
+    }
+
+    final double t = _riderAnimController.value.clamp(0.0, 1.0);
+    final double distanceTraveled = t * totalDistance;
+
+    double accumulated = 0.0;
+    LatLng currentPos = points.first;
+    double currentBearing = 0.0;
+    int currentSegIdx = 0;
+
+    for (int i = 0; i < segmentLengths.length; i++) {
+      final segLen = segmentLengths[i];
+      if (accumulated + segLen >= distanceTraveled || i == segmentLengths.length - 1) {
+        currentSegIdx = i;
+        final segFraction = segLen > 0.0 ? ((distanceTraveled - accumulated) / segLen).clamp(0.0, 1.0) : 0.0;
+        final p1 = points[i];
+        final p2 = points[i + 1];
+        final lat = p1.latitude + (p2.latitude - p1.latitude) * segFraction;
+        final lng = p1.longitude + (p2.longitude - p1.longitude) * segFraction;
+        currentPos = LatLng(lat, lng);
+        currentBearing = _calculateBearing(p1, p2);
+        break;
+      }
+      accumulated += segLen;
+    }
+
+    final double remainingMeters = (totalDistance - distanceTraveled).clamp(0.0, totalDistance);
+    final double remainingKm = remainingMeters / 1000.0;
+    final int etaMins = (remainingKm <= 0.08) ? 0 : (remainingKm * 3.2 + 1).ceil();
+
+    final List<LatLng> completed = [];
+    for (int i = 0; i <= currentSegIdx; i++) {
+      completed.add(points[i]);
+    }
+    completed.add(currentPos);
+
+    final List<LatLng> remaining = [currentPos];
+    for (int i = currentSegIdx + 1; i < points.length; i++) {
+      remaining.add(points[i]);
+    }
+
+    return _RiderRouteProgress(
+      currentPosition: currentPos,
+      bearing: currentBearing,
+      remainingDistanceKm: remainingKm,
+      remainingEtaMinutes: etaMins,
+      completedPath: completed,
+      remainingPath: remaining,
+    );
+  }
 
   void _zoomIn() {
     setState(() {
       _currentZoom = (_currentZoom + 0.8).clamp(10.0, 18.0);
-      _mapController.move(_riderLocation, _currentZoom);
+      _mapController.move(_currentRouteProgress.currentPosition, _currentZoom);
     });
   }
 
   void _zoomOut() {
     setState(() {
       _currentZoom = (_currentZoom - 0.8).clamp(10.0, 18.0);
-      _mapController.move(_riderLocation, _currentZoom);
+      _mapController.move(_currentRouteProgress.currentPosition, _currentZoom);
     });
   }
 
   void _reCenter() {
-    _mapController.move(_riderLocation, 15.0);
+    _mapController.move(_currentRouteProgress.currentPosition, 15.0);
   }
 
   @override
@@ -92,6 +335,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           (o) => o.orderId == widget.order.orderId,
           orElse: () => widget.order,
         );
+
+        final routeProgress = _currentRouteProgress;
 
         return Scaffold(
           backgroundColor: const Color(0xFFE2E8F0),
@@ -113,15 +358,24 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     userAgentPackageName: 'com.bonchi.food_ordering_system',
                   ),
 
-                  // Route Polyline (Green Delivery Path)
+                  // Route Polylines: Completed (gray) + Remaining (emerald glow)
                   PolylineLayer(
                     polylines: [
+                      // Traversed / Completed path
                       Polyline(
-                        points: _routePoints,
-                        strokeWidth: 5.5,
+                        points: routeProgress.completedPath,
+                        strokeWidth: 4.5,
+                        color: Colors.grey.shade400.withValues(alpha: 0.8),
+                        borderColor: Colors.white70,
+                        borderStrokeWidth: 1.0,
+                      ),
+                      // Upcoming / Live path
+                      Polyline(
+                        points: routeProgress.remainingPath,
+                        strokeWidth: 6.0,
                         color: AppTheme.primaryGreen,
                         borderColor: Colors.white,
-                        borderStrokeWidth: 1.5,
+                        borderStrokeWidth: 1.8,
                       ),
                     ],
                   ),
@@ -141,14 +395,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                       ),
 
-                      // Rider Marker (Bonchi Delivery Rider)
-                      Marker(
-                        point: _riderLocation,
-                        width: 75,
-                        height: 75,
-                        child: _buildRiderMarker(freshOrder.riderName),
-                      ),
-
                       // Customer Destination Pin
                       Marker(
                         point: _targetDestination,
@@ -160,6 +406,14 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           label: 'You',
                         ),
                       ),
+
+                      // Animated Rider Marker (Bonchi Delivery Rider with Bearing & Pulse)
+                      Marker(
+                        point: routeProgress.currentPosition,
+                        width: 80,
+                        height: 80,
+                        child: _buildAnimatedRiderMarker(freshOrder.riderName, routeProgress.bearing),
+                      ),
                     ],
                   ),
                 ],
@@ -167,7 +421,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
               // Map Action Controls (Zoom & Re-center floating column on Right)
               Positioned(
-                top: 100,
+                top: 130,
                 right: 16,
                 child: Column(
                   children: [
@@ -193,55 +447,173 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 ),
               ),
 
-              // Map Top Bar Controls
+              // Map Top Bar Controls & Live Simulation Speed Pill
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 18,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.textPrimary, size: 16),
-                          onPressed: () {
-                            if (widget.onBackToHome != null) {
-                              widget.onBackToHome!();
-                            } else if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
-                            } else {
-                              Navigator.popUntil(context, (route) => route.isFirst);
-                            }
-                          },
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 18,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.textPrimary, size: 16),
+                              onPressed: () {
+                                if (widget.onBackToHome != null) {
+                                  widget.onBackToHome!();
+                                } else if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                } else {
+                                  Navigator.popUntil(context, (route) => route.isFirst);
+                                }
+                              },
+                            ),
+                          ),
+
+                          // Order ID Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                            decoration: AppTheme.glassDecoration(
+                              opacity: 0.92,
+                              borderRadius: 20,
+                              blurRadius: 10,
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.map_outlined, color: AppTheme.primaryGreen, size: 15),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${freshOrder.orderId} • Live Map',
+                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 18,
+                            child: Icon(Icons.share_outlined, color: AppTheme.textPrimary, size: 18),
+                          ),
+                        ],
                       ),
 
-                      // Order ID Badge
+                      const SizedBox(height: 8),
+
+                      // Floating Live Simulation Bar
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                         decoration: AppTheme.glassDecoration(
-                          opacity: 0.92,
-                          borderRadius: 20,
+                          opacity: 0.94,
+                          borderRadius: 16,
                           blurRadius: 10,
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.map_outlined, color: AppTheme.primaryGreen, size: 15),
-                            const SizedBox(width: 6),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _riderAnimController.isAnimating ? AppTheme.primaryGreen : Colors.amber.shade700,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Text(
-                              '${freshOrder.orderId} • Live Map',
-                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.textPrimary),
+                              _riderAnimController.isAnimating ? 'LIVE MOVEMENT 🛵' : 'SIMULATION PAUSED ⏸️',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: _riderAnimController.isAnimating ? AppTheme.primaryGreen : Colors.amber.shade900,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            const Spacer(),
+                            // Play / Pause
+                            InkWell(
+                              onTap: _togglePlayPause,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  _riderAnimController.isAnimating ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                  color: AppTheme.primaryGreen,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            // Speed toggle (1x / 2x / 4x)
+                            InkWell(
+                              onTap: () {
+                                if (_simSpeed == 1.0) {
+                                  _setSpeed(2.0);
+                                } else if (_simSpeed == 2.0) {
+                                  _setSpeed(4.0);
+                                } else {
+                                  _setSpeed(1.0);
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1F2937),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${_simSpeed.toInt()}x',
+                                  style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            // Restart
+                            InkWell(
+                              onTap: _restartSimulation,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.refresh_rounded, color: AppTheme.textPrimary, size: 15),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            // Auto-follow
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _autoFollow = !_autoFollow;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _autoFollow ? AppTheme.primaryGreen.withValues(alpha: 0.15) : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.gps_fixed_rounded,
+                                  color: _autoFollow ? AppTheme.primaryGreen : Colors.grey.shade600,
+                                  size: 15,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-
-                      const CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 18,
-                        child: Icon(Icons.share_outlined, color: AppTheme.textPrimary, size: 18),
                       ),
                     ],
                   ),
@@ -306,9 +678,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                 color: const Color(0xFFECFDF5),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Text(
-                                '2.4 KM AWAY',
-                                style: TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.w800),
+                              child: Text(
+                                '${routeProgress.remainingDistanceKm.toStringAsFixed(1)} KM AWAY',
+                                style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.w800),
                               ),
                             ),
                           ],
@@ -317,7 +689,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         const SizedBox(height: 6),
 
                         // ETA Title or Delivery Success Header
-                        if (freshOrder.status == OrderStatus.delivered) ...[
+                        if (freshOrder.status == OrderStatus.delivered || routeProgress.remainingEtaMinutes <= 0) ...[
                           Row(
                             children: [
                               Container(
@@ -357,7 +729,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                '${freshOrder.estimatedMinsLeft} mins ',
+                                '${routeProgress.remainingEtaMinutes} mins ',
                                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                               ),
                               const Text(
@@ -368,7 +740,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           ),
                           Text(
                             freshOrder.deliveryTimeOption == 'ASAP (20-25 min)'
-                                ? 'Estimated Arrival: ${freshOrder.estimatedArrivalTime} (On Time)'
+                                ? 'Estimated Arrival: ~${routeProgress.remainingEtaMinutes} min (Live GPS Tracking)'
                                 : 'Scheduled Delivery: ${freshOrder.deliveryTimeOption}',
                             style: TextStyle(
                               fontSize: 12,
@@ -1364,33 +1736,104 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     );
   }
 
-  Widget _buildRiderMarker(String riderName) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Pulsing background glow
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryGreen.withValues(alpha: 0.25),
-            shape: BoxShape.circle,
-          ),
-        ),
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryGreen,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2.5),
-            boxShadow: [
-              BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4)),
-            ],
-          ),
-          child: const Icon(Icons.two_wheeler, color: Colors.white, size: 22),
-        ),
-      ],
+  Widget _buildAnimatedRiderMarker(String riderName, double bearing) {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, _) {
+        final double scale = 1.0 + (_pulseController.value * 0.75);
+        final double ringOpacity = (1.0 - _pulseController.value).clamp(0.0, 1.0) * 0.45;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            // Outer radar ripple
+            Transform.scale(
+              scale: scale,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryGreen.withValues(alpha: ringOpacity),
+                  border: Border.all(
+                    color: AppTheme.primaryGreen.withValues(alpha: ringOpacity * 0.9),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+
+            // Inner soft halo
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryGreen.withValues(alpha: 0.22),
+                shape: BoxShape.circle,
+              ),
+            ),
+
+            // Main Rotating Bike Marker
+            Transform.rotate(
+              angle: (bearing - 45) * (math.pi / 180.0),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF047857)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.5),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.two_wheeler, color: Colors.white, size: 23),
+              ),
+            ),
+
+            // Floating speed badge
+            Positioned(
+              top: -6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white24, width: 0.8),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bolt, color: Color(0xFFFBBF24), size: 10),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${(28 * _simSpeed).toInt()} km/h',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
