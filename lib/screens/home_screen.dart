@@ -20,6 +20,8 @@ import '../widgets/avatar_image_helper.dart';
 import '../widgets/notification_sheet.dart';
 import '../widgets/about_bonchi_guide_sheet.dart';
 import '../services/notification_service.dart';
+import '../providers/loyalty_provider.dart';
+import 'loyalty_rewards_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onNavigateTab;
@@ -202,10 +204,53 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // Bell & Profile Avatar
+                    // Coin Balance Pill & Bell & Profile Avatar
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Consumer<LoyaltyProvider>(
+                          builder: (context, loyalty, _) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoyaltyRewardsScreen()),
+                                );
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5), width: 1),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text('🪙', style: TextStyle(fontSize: 12)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${loyalty.coinsBalance}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 12,
+                                        color: Color(0xFFB45309),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                         GestureDetector(
                           onTap: () => NotificationSheet.show(context),
                           child: Stack(

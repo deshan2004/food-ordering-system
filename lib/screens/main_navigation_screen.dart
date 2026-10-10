@@ -25,6 +25,8 @@ import '../widgets/avatar_image_helper.dart';
 import '../widgets/payment_sheets.dart';
 import 'order_history_screen.dart';
 import '../providers/settings_provider.dart';
+import '../providers/loyalty_provider.dart';
+import 'loyalty_rewards_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -559,112 +561,151 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             const SizedBox(height: 14),
 
             // Quick Stats Metric Row
-            Row(
-              children: [
-                _buildStatPill('Reward Points', '${user.rewardsPoints}', Icons.stars_rounded, AppTheme.starYellow),
-                const SizedBox(width: 10),
-                _buildStatPill(
-                  'Orders Placed',
-                  '${orderProvider.orders.length}',
-                  Icons.receipt_long_rounded,
-                  const Color(0xFF3B82F6),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                _buildStatPill(
-                  'Saved Favs',
-                  '${favProvider.favoriteIds.length}',
-                  Icons.favorite_rounded,
-                  const Color(0xFFEF4444),
-                  onTap: () => setState(() => _currentIndex = 1),
-                ),
-              ],
+            Consumer<LoyaltyProvider>(
+              builder: (context, loyalty, _) {
+                return Row(
+                  children: [
+                    _buildStatPill(
+                      'Bonchi Coins',
+                      '${loyalty.coinsBalance} 🪙',
+                      Icons.monetization_on_rounded,
+                      AppTheme.starYellow,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoyaltyRewardsScreen()),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    _buildStatPill(
+                      'Orders Placed',
+                      '${orderProvider.orders.length}',
+                      Icons.receipt_long_rounded,
+                      const Color(0xFF3B82F6),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    _buildStatPill(
+                      'Saved Favs',
+                      '${favProvider.favoriteIds.length}',
+                      Icons.favorite_rounded,
+                      const Color(0xFFEF4444),
+                      onTap: () => setState(() => _currentIndex = 1),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 16),
 
             // VIP Bonchi Rewards Luxury Banner Card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF0F172A),
-                    Color(0xFF1E293B),
-                    Color(0xFF334155),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+            Consumer<LoyaltyProvider>(
+              builder: (context, loyalty, _) {
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoyaltyRewardsScreen()),
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                        colors: [
+                          Color(0xFF0F172A),
+                          Color(0xFF1E293B),
+                          Color(0xFF334155),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: Colors.black.withValues(alpha: 0.18),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        const Row(
-                          children: [
-                            Text(
-                              'Bonchi Rewards Club',
-                              style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
                             ),
-                            SizedBox(width: 6),
-                            Text(
-                              '• GOLD',
-                              style: TextStyle(color: Color(0xFFFBBF24), fontSize: 11, fontWeight: FontWeight.w900),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 24),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Bonchi Rewards Club',
+                                    style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '• ${loyalty.currentTier.displayName.toUpperCase()}',
+                                    style: const TextStyle(color: Color(0xFFFBBF24), fontSize: 11, fontWeight: FontWeight.w900),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${loyalty.coinsBalance} Coins Available',
+                                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryGreen,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LoyaltyRewardsScreen()),
+                              ),
+                              child: const Text('VIP Perks 👑', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                            const SizedBox(height: 6),
+                            InkWell(
+                              onTap: () => _showRedeemDialog(context, user),
+                              child: const Text(
+                                'Vouchers 🎟️',
+                                style: TextStyle(color: Color(0xFFFDE68A), fontSize: 11.5, fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${user.rewardsPoints} Points Available',
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
                       ],
                     ),
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    onPressed: () => _showRedeemDialog(context, user),
-                    child: const Text('Redeem', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
             const SizedBox(height: 20),
 

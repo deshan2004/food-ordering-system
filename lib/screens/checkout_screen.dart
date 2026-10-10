@@ -9,9 +9,12 @@ import 'order_tracking_screen.dart';
 import 'map_location_picker_screen.dart';
 import '../providers/payment_provider.dart';
 import '../models/payment_method_model.dart';
+import 'dart:math' as math;
 import '../widgets/payment_sheets.dart';
 import '../widgets/coupon_sheet.dart';
 import '../providers/settings_provider.dart';
+import '../providers/loyalty_provider.dart';
+import 'loyalty_rewards_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -297,6 +300,140 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
 
+                  // Bonchi Rewards Coins Redemption Card
+                  Consumer<LoyaltyProvider>(
+                    builder: (context, loyalty, _) {
+                      final maxRedeemableCoins = math.min(
+                        loyalty.coinsBalance,
+                        (cart.subtotalLkr * 0.4).toInt(),
+                      );
+                      final isCoinApplied = cart.redeemedCoins > 0;
+
+                      return Container(
+                        margin: const EdgeInsets.only(top: 14),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isCoinApplied ? const Color(0xFFFEF3C7) : Colors.white.withValues(alpha: 0.92),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isCoinApplied ? const Color(0xFFF59E0B) : Colors.grey.shade300,
+                            width: isCoinApplied ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text('🪙', style: TextStyle(fontSize: 20)),
+                                    const SizedBox(width: 8),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Bonchi Loyalty Coins',
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                        ),
+                                        Text(
+                                          'Balance: ${loyalty.coinsBalance} Coins (Worth Rs. ${loyalty.coinsBalance})',
+                                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => const LoyaltyRewardsScreen()),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${loyalty.currentTier.badgeEmoji} ${loyalty.currentTier.displayName}',
+                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (loyalty.coinsBalance < 50)
+                              const Text(
+                                'Earn 50+ coins on orders to unlock instant discounts!',
+                                style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, fontStyle: FontStyle.italic),
+                              )
+                            else
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      isCoinApplied
+                                          ? 'Redeemed ${cart.redeemedCoins} Coins (-Rs. ${cart.redeemedCoins}) 🏷️'
+                                          : 'Redeem $maxRedeemableCoins Coins for Rs. $maxRedeemableCoins OFF',
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isCoinApplied ? const Color(0xFFB45309) : AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isCoinApplied ? Colors.grey.shade400 : const Color(0xFFD97706),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () {
+                                      if (isCoinApplied) {
+                                        cart.removeCoinsRedemption();
+                                      } else {
+                                        cart.applyCoinsRedemption(maxRedeemableCoins, maxRedeemableCoins.toDouble());
+                                      }
+                                    },
+                                    child: Text(
+                                      isCoinApplied ? 'Remove' : 'Redeem 🪙',
+                                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFECFDF5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.bolt, color: AppTheme.primaryGreen, size: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'You will earn +${loyalty.calculateCoinsEarnable(cart.grandTotalLkr)} Coins (${loyalty.currentTier.earnMultiplier}x) on this order!',
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
                   const SizedBox(height: 24),
 
                   // Payment Method Selection
@@ -400,13 +537,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           ],
                         ),
-                        if (cart.discountLkr > 0) ...[
+                        if (cart.promoDiscountLkr > 0) ...[
                           const SizedBox(height: 6),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Discount (${cart.promoCode})', style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13, fontWeight: FontWeight.w600)),
-                              Text('- ${_formatLkr(cart.discountLkr)}', style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13, fontWeight: FontWeight.bold)),
+                              Text('Promo Discount (${cart.promoCode})', style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13, fontWeight: FontWeight.w600)),
+                              Text('- ${_formatLkr(cart.promoDiscountLkr)}', style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ],
+                        if (cart.coinDiscountLkr > 0) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Bonchi Coins (${cart.redeemedCoins} 🪙)', style: const TextStyle(color: Color(0xFFB45309), fontSize: 13, fontWeight: FontWeight.w600)),
+                              Text('- ${_formatLkr(cart.coinDiscountLkr)}', style: const TextStyle(color: Color(0xFFB45309), fontSize: 13, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ],
@@ -456,6 +603,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         final auth = Provider.of<AuthProvider>(context, listen: false);
                         final user = auth.currentUser;
                         final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+                        final loyalty = Provider.of<LoyaltyProvider>(context, listen: false);
+
                         final newOrder = orderProvider.placeOrder(
                           items: cart.items,
                           subtotalLkr: cart.subtotalLkr,
@@ -470,6 +619,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           destinationLongitude: _deliveryLng,
                           deliveryTimeOption: _deliveryTimeOption,
                         );
+
+                        // Sync Loyalty coins redemption & earning
+                        if (cart.redeemedCoins > 0) {
+                          loyalty.redeemCoins(orderId: newOrder.orderId, coins: cart.redeemedCoins);
+                        }
+                        loyalty.earnCoinsFromOrder(orderId: newOrder.orderId, totalAmountLkr: newOrder.grandTotalLkr);
 
                         cart.clearCart();
 

@@ -10,6 +10,9 @@ class CartProvider with ChangeNotifier {
   String? _promoError;
   PromoCoupon? _appliedCoupon;
 
+  int _redeemedCoins = 0;
+  double _coinDiscountLkr = 0.0;
+
   List<CartItem> get items => List.unmodifiable(_items);
 
   int get totalItemCount {
@@ -26,7 +29,10 @@ class CartProvider with ChangeNotifier {
     return subtotalLkr >= 3500.0 ? 0.0 : 180.0;
   }
 
-  double get discountLkr => _promoDiscountLkr;
+  double get promoDiscountLkr => _promoDiscountLkr;
+  double get coinDiscountLkr => _coinDiscountLkr;
+  int get redeemedCoins => _redeemedCoins;
+  double get discountLkr => _promoDiscountLkr + _coinDiscountLkr;
 
   double get grandTotalLkr {
     double total = subtotalLkr + deliveryFeeLkr - discountLkr;
@@ -151,12 +157,26 @@ class CartProvider with ChangeNotifier {
     }
   }
 
+  void applyCoinsRedemption(int coins, double discountAmount) {
+    _redeemedCoins = coins;
+    _coinDiscountLkr = discountAmount;
+    notifyListeners();
+  }
+
+  void removeCoinsRedemption() {
+    _redeemedCoins = 0;
+    _coinDiscountLkr = 0.0;
+    notifyListeners();
+  }
+
   void clearCart() {
     _items.clear();
     _appliedCoupon = null;
     _promoCode = '';
     _promoDiscountLkr = 0.0;
     _promoError = null;
+    _redeemedCoins = 0;
+    _coinDiscountLkr = 0.0;
     notifyListeners();
   }
 }
