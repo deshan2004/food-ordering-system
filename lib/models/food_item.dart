@@ -18,13 +18,16 @@ class FoodItem {
   final String sinhalaName;
   final String restaurantName;
   final String restaurantSubtitle;
+  final String category;
   final String description;
   final double priceLkr;
   final double rating;
   final String reviewCountText;
   final String deliveryTime;
   final double deliveryFeeLkr;
-  final String category;
+  final String restaurantId;
+  final String country;
+  final String menuCategory;
   final String imageUrl;
   final bool isOpenNow;
   final bool isBestseller;
@@ -40,8 +43,11 @@ class FoodItem {
     required this.id,
     required this.name,
     this.sinhalaName = '',
+    this.restaurantId = 'rest_pilawaos',
     required this.restaurantName,
     this.restaurantSubtitle = '',
+    this.country = 'Sri Lanka',
+    this.menuCategory = 'Main Courses',
     required this.description,
     required this.priceLkr,
     required this.rating,
@@ -68,6 +74,9 @@ class FoodItem {
       sinhalaName: json['sinhalaName']?.toString() ?? '',
       restaurantName: json['restaurantName']?.toString() ?? '',
       restaurantSubtitle: json['restaurantSubtitle']?.toString() ?? '',
+      restaurantId: json['restaurantId']?.toString() ?? 'rest_pilawaos',
+      country: json['country']?.toString() ?? 'Sri Lanka',
+      menuCategory: json['menuCategory']?.toString() ?? 'Main Courses',
       description: json['description']?.toString() ?? '',
       priceLkr: double.tryParse(json['priceLkr']?.toString() ?? '0') ?? 0.0,
       rating: double.tryParse(json['rating']?.toString() ?? '5.0') ?? 5.0,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/food_item.dart';
+import '../models/restaurant_model.dart';
 import '../providers/cart_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/auth_provider.dart';
@@ -8,6 +9,7 @@ import '../services/food_service.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import 'food_detail_screen.dart';
+import 'restaurant_detail_screen.dart';
 import 'login_screen.dart';
 import 'map_location_picker_screen.dart';
 import 'dart:ui';
@@ -24,7 +26,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _selectedCategory = 'Rice & Curry';
+  String _filterMode = 'country'; // 'country' or 'category'
+  String _selectedCountry = 'All';
+  String _selectedCategory = 'All';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   List<FoodItem> _apiFoodItems = [];
@@ -62,11 +66,27 @@ class _HomeScreenState extends State<HomeScreen> {
       final lower = _searchQuery.toLowerCase();
       displayedItems = allAvailableItems.where((item) {
         return item.name.toLowerCase().contains(lower) ||
+            item.sinhalaName.toLowerCase().contains(lower) ||
             item.restaurantName.toLowerCase().contains(lower) ||
+            item.country.toLowerCase().contains(lower) ||
             item.description.toLowerCase().contains(lower) ||
-            item.category.toLowerCase().contains(lower);
+            item.category.toLowerCase().contains(lower) ||
+            item.menuCategory.toLowerCase().contains(lower);
       }).toList();
+    } else {
+      if (_filterMode == 'country' && _selectedCountry != 'All') {
+        displayedItems = displayedItems.where((item) => item.country.toLowerCase() == _selectedCountry.toLowerCase()).toList();
+      } else if (_filterMode == 'category' && _selectedCategory != 'All') {
+        displayedItems = displayedItems.where((item) => item.category.toLowerCase() == _selectedCategory.toLowerCase()).toList();
+      }
     }
+
+    final List<RestaurantModel> displayedRestaurants = (_filterMode == 'country' && _selectedCountry != 'All')
+        ? FoodService.getRestaurantsByCountry(_selectedCountry)
+        : FoodService.mockRestaurants;
+    final List<RestaurantModel> partnerRestaurants = displayedRestaurants.isNotEmpty
+        ? displayedRestaurants
+        : FoodService.mockRestaurants;
 
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
@@ -411,99 +431,480 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
 
-            // Cuisine Cravings Header
+            // Filter Mode Switcher Row: "By Country / Cuisine" vs "By Food Type"
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Cuisine Cravings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppTheme.textPrimary)),
-                    Text('Island Flavours', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.primaryGreen.withValues(alpha: 0.9))),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _filterMode = 'country';
+                            _selectedCategory = 'All';
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: _filterMode == 'country'
+                                ? AppTheme.primaryGreen
+                                : Colors.white.withValues(alpha: 0.72),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: _filterMode == 'country'
+                                  ? AppTheme.primaryGreen
+                                  : Colors.white.withValues(alpha: 0.95),
+                              width: 1.4,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _filterMode == 'country'
+                                    ? AppTheme.primaryGreen.withValues(alpha: 0.25)
+                                    : Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('🌍', style: TextStyle(fontSize: 15)),
+                              const SizedBox(width: 6),
+                              Text(
+                                'By Country',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: _filterMode == 'country' ? Colors.white : AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _filterMode = 'category';
+                            _selectedCountry = 'All';
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: _filterMode == 'category'
+                                ? AppTheme.primaryGreen
+                                : Colors.white.withValues(alpha: 0.72),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: _filterMode == 'category'
+                                  ? AppTheme.primaryGreen
+                                  : Colors.white.withValues(alpha: 0.95),
+                              width: 1.4,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _filterMode == 'category'
+                                    ? AppTheme.primaryGreen.withValues(alpha: 0.25)
+                                    : Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('🍲', style: TextStyle(fontSize: 15)),
+                              const SizedBox(width: 6),
+                              Text(
+                                'By Food Type',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: _filterMode == 'category' ? Colors.white : AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+            const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-            // Cuisine Cravings Categories Horizontal Scroll
+            // Dynamic Horizontal Scroll Selector (Country Cuisines OR Food Categories)
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 80,
+                height: 82,
+                child: _filterMode == 'country'
+                    ? ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: FoodService.countryCuisines.length,
+                        itemBuilder: (context, index) {
+                          final c = FoodService.countryCuisines[index];
+                          final isSelected = _selectedCountry == c['country'];
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedCountry = c['country']!;
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(18),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? const Color(0xFFECFDF5).withValues(alpha: 0.92)
+                                          : Colors.white.withValues(alpha: 0.68),
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.primaryGreen
+                                            : Colors.white.withValues(alpha: 0.95),
+                                        width: isSelected ? 1.8 : 1.4,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: isSelected
+                                              ? AppTheme.primaryGreen.withValues(alpha: 0.15)
+                                              : Colors.black.withValues(alpha: 0.04),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(c['flag']!, style: const TextStyle(fontSize: 22)),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          c['name']!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                            color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: FoodService.categories.length,
+                        itemBuilder: (context, index) {
+                          final cat = FoodService.categories[index];
+                          final isSelected = _selectedCategory == cat['name'];
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedCategory = cat['name'] as String;
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(18),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? const Color(0xFFECFDF5).withValues(alpha: 0.92)
+                                          : Colors.white.withValues(alpha: 0.68),
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.primaryGreen
+                                            : Colors.white.withValues(alpha: 0.95),
+                                        width: isSelected ? 1.8 : 1.4,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: isSelected
+                                              ? AppTheme.primaryGreen.withValues(alpha: 0.15)
+                                              : Colors.black.withValues(alpha: 0.04),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(cat['icon'] as String, style: const TextStyle(fontSize: 18)),
+                                            if ((cat['badge'] as String).isNotEmpty) ...[
+                                              const SizedBox(width: 4),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: (cat['badge'] as String).contains('Hot') ? AppTheme.accentRed : AppTheme.accentAmber,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  cat['badge'] as String,
+                                                  style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          cat['name'] as String,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                            color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ),
+
+            // Top Partner Restaurants & Kitchens Header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Partner Restaurants',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.textPrimary),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${partnerRestaurants.length}',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppTheme.primaryGreen),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Tap to View Menus ➔',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primaryGreen.withValues(alpha: 0.9)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Horizontal Restaurants Carousel
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 195,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: FoodService.categories.length,
+                  itemCount: partnerRestaurants.length,
                   itemBuilder: (context, index) {
-                    final cat = FoodService.categories[index];
-                    final isSelected = _selectedCategory == cat['name'];
-
+                    final rest = partnerRestaurants[index];
                     return GestureDetector(
                       onTap: () {
-                        setState(() {
-                          _selectedCategory = cat['name'] as String;
-                        });
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => RestaurantDetailScreen(restaurant: rest),
+                          ),
+                        );
                       },
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        width: 225,
+                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(20),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFFECFDF5).withValues(alpha: 0.88)
-                                    : Colors.white.withValues(alpha: 0.68),
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppTheme.primaryGreen
-                                      : Colors.white.withValues(alpha: 0.95),
-                                  width: isSelected ? 1.8 : 1.4,
-                                ),
+                                color: Colors.white.withValues(alpha: 0.78),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.4),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.04),
-                                    blurRadius: 12,
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 14,
                                     offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                  // Cover Photo with Flag Chip & Rating
+                                  Stack(
                                     children: [
-                                      Text(cat['icon'] as String, style: const TextStyle(fontSize: 18)),
-                                      if ((cat['badge'] as String).isNotEmpty) ...[
-                                        const SizedBox(width: 4),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: (cat['badge'] as String).contains('Hot') ? AppTheme.accentRed : AppTheme.accentAmber,
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            cat['badge'] as String,
-                                            style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold),
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
+                                        child: Image.network(
+                                          rest.coverImageUrl,
+                                          height: 95,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => Container(
+                                            height: 95,
+                                            color: const Color(0xFFE2E8F0),
+                                            child: const Icon(Icons.restaurant, color: Color(0xFF94A3B8), size: 32),
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        left: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(alpha: 0.65),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(rest.flagEmoji, style: const TextStyle(fontSize: 12)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                rest.country,
+                                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.92),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.star_rounded, color: AppTheme.starYellow, size: 14),
+                                              const SizedBox(width: 2),
+                                              Text(
+                                                '${rest.rating}',
+                                                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w900, color: AppTheme.textPrimary),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    cat['name'] as String,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                      color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+
+                                  // Restaurant Details
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          rest.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          rest.cuisine,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 10.5,
+                                            color: AppTheme.textSecondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.schedule, size: 11, color: AppTheme.primaryGreen),
+                                                const SizedBox(width: 3),
+                                                Text(
+                                                  rest.deliveryTime,
+                                                  style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                                ),
+                                              ],
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFDCFCE7),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: const Text(
+                                                'Menu ➔',
+                                                style: TextStyle(
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: AppTheme.primaryGreen,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -518,7 +919,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: SizedBox(height: 18)),
 
             // Rainy Day Deals Promo Banner
             SliverToBoxAdapter(
@@ -622,21 +1023,55 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-            // Popular Near You Header
+            // Popular Near You / Filtered Results Header
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Text('Popular Near You', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.textPrimary)),
-                        SizedBox(width: 6),
-                        Icon(Icons.circle, color: AppTheme.primaryGreen, size: 8),
+                        Text(
+                          _filterMode == 'country' && _selectedCountry != 'All'
+                              ? '$_selectedCountry Dishes'
+                              : (_filterMode == 'category' && _selectedCategory != 'All'
+                                  ? _selectedCategory
+                                  : 'Popular Near You'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.textPrimary),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.circle, color: AppTheme.primaryGreen, size: 8),
                       ],
                     ),
-                    Text('See All (42)', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                    if (_selectedCountry != 'All' || _selectedCategory != 'All' || _searchQuery.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedCountry = 'All';
+                            _selectedCategory = 'All';
+                            _searchQuery = '';
+                            _searchController.clear();
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEE2E2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.close, size: 12, color: AppTheme.accentRed),
+                              SizedBox(width: 3),
+                              Text('Clear Filter', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.accentRed)),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      Text('(${displayedItems.length} dishes)', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
                   ],
                 ),
               ),
@@ -644,234 +1079,351 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-            // Restaurant Cards Vertical List
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final item = displayedItems[index];
-                  final isFav = favProvider.isFavorite(item.id);
-
-                  return Container(
-                    margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.95),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0F172A).withValues(alpha: 0.06),
-                                blurRadius: 20,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                        // Card Header Image with status pill & heart
-                        Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                              child: Image.network(
-                                item.imageUrl,
-                                height: 160,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Positioned(
-                              top: 12,
-                              left: 12,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.circle, color: AppTheme.primaryGreen, size: 7),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Open Now • ${item.deliveryTime}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppTheme.textPrimary),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 12,
-                              right: 12,
-                              child: CircleAvatar(
-                                backgroundColor: Colors.white.withValues(alpha: 0.9),
-                                radius: 17,
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(
-                                    isFav ? Icons.favorite : Icons.favorite_border,
-                                    color: isFav ? AppTheme.accentRed : AppTheme.textPrimary,
-                                    size: 18,
-                                  ),
-                                  onPressed: () => favProvider.toggleFavorite(item),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 12,
-                              left: 12,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.95),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.star, color: AppTheme.starYellow, size: 14),
-                                        const SizedBox(width: 3),
-                                        Text(
-                                          '${item.rating}',
-                                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary),
-                                        ),
-                                        Text(
-                                          ' (${item.reviewCountText})',
-                                          style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.95),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.delivery_dining, color: AppTheme.primaryGreen, size: 14),
-                                        const SizedBox(width: 3),
-                                        Text(
-                                          'LKR ${item.deliveryFeeLkr.toInt()} Delivery',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppTheme.primaryGreen),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+            // Restaurant & Dishes Vertical Feed or Empty State
+            if (displayedItems.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(28),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.ramen_dining_outlined, size: 54, color: Color(0xFF94A3B8)),
+                        const SizedBox(height: 14),
+                        Text(
+                          _selectedCountry != 'All'
+                              ? 'No $_selectedCountry dishes found'
+                              : 'No matching foods found',
+                          style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                         ),
-
-                        // Restaurant Info Details
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.restaurantName,
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                item.restaurantSubtitle,
-                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                              ),
-
-                              const SizedBox(height: 12),
-
-                              // Signature Hit Card Inset
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => FoodDetailScreen(foodItem: item)),
-                                  );
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.85),
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.0),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.signatureTag,
-                                            style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            item.signatureItemName,
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textPrimary),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            'LKR ${item.signatureItemPriceLkr.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-                                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.primaryGreen),
-                                          ),
-                                        ],
-                                      ),
-
-                                      // Green + Add Button
-                                      ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppTheme.primaryGreen,
-                                          foregroundColor: Colors.white,
-                                          elevation: 0,
-                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                        ),
-                                        onPressed: () {
-                                          final cart = Provider.of<CartProvider>(context, listen: false);
-                                          cart.addToCart(foodItem: item);
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Added ${item.name} to Cart!'),
-                                              backgroundColor: AppTheme.primaryGreen,
-                                              duration: const Duration(seconds: 2),
-                                            ),
-                                          );
-                                        },
-                                        icon: const Icon(Icons.add, size: 16),
-                                        label: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Try clearing your search query or selecting a different country / food type.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                        ),
+                        const SizedBox(height: 18),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _selectedCountry = 'All';
+                              _selectedCategory = 'All';
+                              _searchQuery = '';
+                              _searchController.clear();
+                            });
+                          },
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: const Text('Show All Cuisines & Dishes'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryGreen,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final item = displayedItems[index];
+                    final isFav = favProvider.isFavorite(item.id);
+
+                    return Container(
+                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.95),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                          // Card Header Image with status pill & heart
+                          Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                                child: Image.network(
+                                  item.imageUrl,
+                                  height: 160,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 12,
+                                left: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.92),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.circle, color: AppTheme.primaryGreen, size: 7),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        '${item.country} • ${item.deliveryTime}',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppTheme.textPrimary),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.white.withValues(alpha: 0.9),
+                                  radius: 17,
+                                  child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: Icon(
+                                      isFav ? Icons.favorite : Icons.favorite_border,
+                                      color: isFav ? AppTheme.accentRed : AppTheme.textPrimary,
+                                      size: 18,
+                                    ),
+                                    onPressed: () => favProvider.toggleFavorite(item),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 12,
+                                left: 12,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.95),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.star, color: AppTheme.starYellow, size: 14),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            '${item.rating}',
+                                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.textPrimary),
+                                          ),
+                                          Text(
+                                            ' (${item.reviewCountText})',
+                                            style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.95),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.delivery_dining, color: AppTheme.primaryGreen, size: 14),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            'LKR ${item.deliveryFeeLkr.toInt()} Delivery',
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppTheme.primaryGreen),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Restaurant Info Details
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    final rest = FoodService.getRestaurantById(item.restaurantId);
+                                    if (rest != null) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => RestaurantDetailScreen(restaurant: rest),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.restaurantName,
+                                                style: const TextStyle(fontSize: 17.5, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                item.restaurantSubtitle,
+                                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFDCFCE7),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.storefront_outlined, size: 14, color: AppTheme.primaryGreen),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                'Menu ➔',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: AppTheme.primaryGreen,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                // Signature Hit Card Inset
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => FoodDetailScreen(foodItem: item)),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.85),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.0),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    item.signatureTag,
+                                                    style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFFF1F5F9),
+                                                      borderRadius: BorderRadius.circular(5),
+                                                    ),
+                                                    child: Text(
+                                                      item.category,
+                                                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                item.signatureItemName,
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textPrimary),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'LKR ${item.signatureItemPriceLkr.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.primaryGreen),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        // Green + Add Button
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppTheme.primaryGreen,
+                                            foregroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                          ),
+                                          onPressed: () {
+                                            final cart = Provider.of<CartProvider>(context, listen: false);
+                                            cart.addToCart(foodItem: item);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Added ${item.name} to Cart!'),
+                                                backgroundColor: AppTheme.primaryGreen,
+                                                duration: const Duration(seconds: 2),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.add, size: 16),
+                                          label: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+                  childCount: displayedItems.length,
+                ),
               ),
-            );
-          },
-                childCount: displayedItems.length,
-              ),
-            ),
 
             // Live Deliveries Info Footer Card
             SliverToBoxAdapter(
