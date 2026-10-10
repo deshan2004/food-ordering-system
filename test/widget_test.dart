@@ -12,8 +12,8 @@ void main() {
     await tester.pumpWidget(const FoodOrderingApp());
     await tester.pumpAndSettle();
 
-    // Verify Bonchi home screen title loads
-    expect(find.textContaining('Ayubowan, Guest!'), findsOneWidget);
+    // Verify Bonchi home screen loads
+    expect(find.textContaining('Bada ginida?'), findsOneWidget);
   });
 }
 
