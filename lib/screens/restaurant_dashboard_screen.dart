@@ -25,13 +25,43 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
   double _walletBalance = 38520.0; // 90% net after platform fee
   final int _completedOrdersToday = 14;
 
-  final Map<String, bool> _stockStatus = {
-    'Bonchi Special Seafood Kottu': true,
-    'Chicken Cheese Kottu': true,
-    'Sri Lankan Lamprais Special': true,
-    'Crispy Pol Roti with Lunu Miris': true,
-    'Faluda Royal Deluxe': true,
-  };
+  final List<Map<String, dynamic>> _menuStockItems = [
+    {
+      'name': 'Bonchi Special Seafood Kottu',
+      'category': 'Chef Signature',
+      'price': 2450.0,
+      'image': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+      'inStock': true,
+    },
+    {
+      'name': 'Chicken Cheese Kottu',
+      'category': 'Kottu Mania',
+      'price': 2100.0,
+      'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80',
+      'inStock': true,
+    },
+    {
+      'name': 'Sri Lankan Lamprais Special',
+      'category': 'Rice & Curry',
+      'price': 2650.0,
+      'image': 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80',
+      'inStock': true,
+    },
+    {
+      'name': 'Crispy Pol Roti with Lunu Miris',
+      'category': 'Village Bites',
+      'price': 850.0,
+      'image': 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=600&q=80',
+      'inStock': true,
+    },
+    {
+      'name': 'Faluda Royal Deluxe',
+      'category': 'Beverages',
+      'price': 950.0,
+      'image': 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=600&q=80',
+      'inStock': true,
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -151,13 +181,14 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 4),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -399,12 +430,12 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white.withValues(alpha: 0.90),
+          borderRadius: BorderRadius.circular(18),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 3)),
           ],
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.2),
         ),
         child: Column(
           children: [
@@ -456,13 +487,13 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 14,
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -822,9 +853,16 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withValues(alpha: 0.90),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.95), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -861,47 +899,154 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
           style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
         ),
         const SizedBox(height: 14),
-        ..._stockStatus.keys.map((item) {
-          final isAvailable = _stockStatus[item] ?? true;
+        ..._menuStockItems.map((item) {
+          final isAvailable = (item['inStock'] as bool?) ?? true;
           return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      const SizedBox(height: 2),
-                      Text(
-                        isAvailable ? 'In Stock • Ready to order' : 'Out of Stock • Hidden from menu',
-                        style: TextStyle(fontSize: 12, color: isAvailable ? AppTheme.primaryGreen : Colors.redAccent),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: isAvailable,
-                  activeColor: AppTheme.primaryGreen,
-                  onChanged: (val) {
-                    setState(() => _stockStatus[item] = val);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('$item marked as ${val ? 'Available' : 'Sold Out'}'),
-                        backgroundColor: val ? AppTheme.primaryGreen : Colors.grey.shade800,
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  },
+              color: Colors.white.withValues(alpha: 0.88),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isAvailable
+                    ? Colors.white.withValues(alpha: 0.95)
+                    : Colors.red.withValues(alpha: 0.3),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  // Food Photo Thumbnail with Glass Overlay
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Stack(
+                      children: [
+                        Image.network(
+                          item['image'] as String,
+                          width: 68,
+                          height: 68,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            width: 68,
+                            height: 68,
+                            color: Colors.orange.shade50,
+                            child: const Icon(Icons.fastfood_rounded, color: Colors.orange),
+                          ),
+                        ),
+                        if (!isAvailable)
+                          Container(
+                            width: 68,
+                            height: 68,
+                            color: Colors.black.withValues(alpha: 0.58),
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'SOLD OUT',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            item['category'] as String,
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.orange.shade800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item['name'] as String,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13.5,
+                            color: AppTheme.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Text(
+                              'Rs. ${(item['price'] as double).toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              width: 3.5,
+                              height: 3.5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isAvailable ? 'In Stock' : 'Out of Stock',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isAvailable ? AppTheme.primaryGreen : Colors.redAccent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Transform.scale(
+                    scale: 0.82,
+                    child: Switch(
+                      value: isAvailable,
+                      activeColor: AppTheme.primaryGreen,
+                      onChanged: (val) {
+                        setState(() => item['inStock'] = val);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${item['name']} marked as ${val ? 'In Stock' : 'Sold Out'}'),
+                            backgroundColor: val ? AppTheme.primaryGreen : Colors.grey.shade800,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }),
