@@ -250,6 +250,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       onPressed: () {
+                        final auth = Provider.of<AuthProvider>(context, listen: false);
+                        final user = auth.currentUser;
                         final orderProvider = Provider.of<OrderProvider>(context, listen: false);
                         final newOrder = orderProvider.placeOrder(
                           items: cart.items,
@@ -258,6 +260,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           discountLkr: cart.discountLkr,
                           grandTotalLkr: cart.grandTotalLkr,
                           deliveryAddress: currentAddress,
+                          customerName: user?.name,
+                          customerPhone: user?.phone,
+                          paymentMethod: _selectedPayment,
                           destinationLatitude: _deliveryLat,
                           destinationLongitude: _deliveryLng,
                         );

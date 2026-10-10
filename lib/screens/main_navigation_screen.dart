@@ -1016,12 +1016,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
       onTap: () async {
         Navigator.pop(ctx);
-        String demoEmail = 'customer@bonchi.lk';
-        if (role == UserRole.restaurant) demoEmail = 'restaurant@bonchi.lk';
-        if (role == UserRole.driver) demoEmail = 'driver@bonchi.lk';
-        if (role == UserRole.admin) demoEmail = 'admin@bonchi.lk';
-
-        await auth.login(email: demoEmail, password: 'password123');
+        if (auth.currentUser != null) {
+          auth.setRole(role);
+        } else {
+          String demoEmail = 'customer@bonchi.lk';
+          if (role == UserRole.restaurant) demoEmail = 'restaurant@bonchi.lk';
+          if (role == UserRole.driver) demoEmail = 'driver@bonchi.lk';
+          if (role == UserRole.admin) demoEmail = 'admin@bonchi.lk';
+          await auth.login(email: demoEmail, password: 'password123');
+        }
         setState(() {});
       },
     );

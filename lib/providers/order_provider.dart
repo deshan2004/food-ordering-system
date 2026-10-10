@@ -8,7 +8,6 @@ import '../services/food_service.dart';
 
 class OrderProvider with ChangeNotifier {
   late final List<OrderModel> _orders;
-  Timer? _statusSimulationTimer;
 
   OrderProvider() {
     // Initial mock order as shown in Bonchi screenshot 3
@@ -52,6 +51,12 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
+  List<OrderModel> get availableDriverJobs =>
+      _orders.where((o) => !o.isDriverAssigned && o.status != OrderStatus.delivered).toList();
+
+  List<OrderModel> get myAcceptedDriverDeliveries =>
+      _orders.where((o) => o.isDriverAssigned && o.status != OrderStatus.delivered).toList();
+
   OrderModel placeOrder({
     required List<CartItem> items,
     required double subtotalLkr,
@@ -59,6 +64,9 @@ class OrderProvider with ChangeNotifier {
     required double discountLkr,
     required double grandTotalLkr,
     required String deliveryAddress,
+    String? customerName,
+    String? customerPhone,
+    String? paymentMethod,
     double? destinationLatitude,
     double? destinationLongitude,
   }) {
@@ -70,20 +78,58 @@ class OrderProvider with ChangeNotifier {
       discountLkr: discountLkr,
       grandTotalLkr: grandTotalLkr,
       deliveryAddress: deliveryAddress,
+      customerName: customerName ?? 'Deshan Siriwardhana',
+      customerPhone: customerPhone ?? '0781776315',
+      paymentMethod: paymentMethod ?? 'Cash on Delivery',
       destinationLatitude: destinationLatitude,
       destinationLongitude: destinationLongitude,
+      distanceKm: 3.5,
+      driverEarningsLkr: (deliveryFeeLkr > 0 ? deliveryFeeLkr * 2.2 : 350.0).clamp(300.0, 750.0),
       orderTime: DateTime.now(),
       status: OrderStatus.confirmed,
+      isDriverAssigned: false,
+      riderName: 'Looking for nearby Rider...',
+      riderVehicle: 'Assigning...',
     );
 
     _orders.insert(0, newOrder);
-    _startStatusSimulation(newOrder.orderId);
     notifyListeners();
 
     // Async save to MySQL Database via PHP API
     _sendOrderToMySql(newOrder, items, grandTotalLkr, deliveryAddress);
 
     return newOrder;
+  }
+
+  void acceptDeliveryByDriver({
+    required String orderId,
+    required String driverName,
+    required String driverVehicle,
+    required String driverPhone,
+    required String driverRating,
+  }) {
+    final idx = _orders.indexWhere((o) => o.orderId == orderId);
+    if (idx != -1) {
+      _orders[idx].isDriverAssigned = true;
+      _orders[idx].riderName = driverName;
+      _orders[idx].riderVehicle = driverVehicle;
+      _orders[idx].riderPhone = driverPhone;
+      _orders[idx].riderRating = driverRating;
+      notifyListeners();
+    }
+  }
+
+  void updateOrderStatus(String orderId, OrderStatus newStatus) {
+    final idx = _orders.indexWhere((o) => o.orderId == orderId);
+    if (idx != -1) {
+      _orders[idx].status = newStatus;
+      if (newStatus == OrderStatus.onTheWay) {
+        _orders[idx].estimatedMinsLeft = 10;
+      } else if (newStatus == OrderStatus.delivered) {
+        _orders[idx].estimatedMinsLeft = 0;
+      }
+      notifyListeners();
+    }
   }
 
   Future<void> _sendOrderToMySql(OrderModel order, List<CartItem> items, double total, String address) async {
@@ -109,35 +155,5 @@ class OrderProvider with ChangeNotifier {
     } catch (e) {
       print('MySQL Order Sync Error: $e');
     }
-  }
-
-  void _startStatusSimulation(String orderId) {
-    _statusSimulationTimer?.cancel();
-    
-    _statusSimulationTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      int index = _orders.indexWhere((o) => o.orderId == orderId);
-      if (index >= 0) {
-        final currentStatus = _orders[index].status;
-        if (currentStatus == OrderStatus.confirmed) {
-          _orders[index].status = OrderStatus.prepped;
-          notifyListeners();
-        } else if (currentStatus == OrderStatus.prepped) {
-          _orders[index].status = OrderStatus.onTheWay;
-          notifyListeners();
-        } else if (currentStatus == OrderStatus.onTheWay) {
-          _orders[index].status = OrderStatus.delivered;
-          notifyListeners();
-          timer.cancel();
-        }
-      } else {
-        timer.cancel();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _statusSimulationTimer?.cancel();
-    super.dispose();
   }
 }

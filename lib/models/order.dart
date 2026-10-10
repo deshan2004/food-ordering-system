@@ -16,15 +16,25 @@ class OrderModel {
   final double grandTotalLkr;
   final String deliveryAddress;
   final String restaurantAddress;
-  final String riderName;
-  final String riderRating;
-  final String riderVehicle;
+  final String restaurantName;
+  final double restaurantLatitude;
+  final double restaurantLongitude;
+  String riderName;
+  String riderRating;
+  String riderVehicle;
+  String riderPhone;
+  final String customerName;
+  final String customerPhone;
+  final String paymentMethod;
   final DateTime orderTime;
   OrderStatus status;
-  final int estimatedMinsLeft;
-  final String estimatedArrivalTime;
+  int estimatedMinsLeft;
+  String estimatedArrivalTime;
   final double? destinationLatitude;
   final double? destinationLongitude;
+  final double distanceKm;
+  final double driverEarningsLkr;
+  bool isDriverAssigned;
 
   OrderModel({
     required this.orderId,
@@ -34,16 +44,26 @@ class OrderModel {
     required this.discountLkr,
     required this.grandTotalLkr,
     this.deliveryAddress = 'Your Location • 42/1, Flower Road, Col 07',
-    this.restaurantAddress = 'Pilawaos Night Kottu • Colombo 03',
+    this.restaurantAddress = 'Pilawaos Night Kottu • Galle Road, Colombo 03',
+    this.restaurantName = 'Pilawaos Night Kottu',
+    this.restaurantLatitude = 6.9085,
+    this.restaurantLongitude = 79.8512,
     this.riderName = 'Sumith Perera',
     this.riderRating = '4.9',
-    this.riderVehicle = 'ABF-8842  Red Tuk-Tuk',
+    this.riderVehicle = 'ABF-8842 Red Bajaj Tuk-Tuk',
+    this.riderPhone = '+94 77 123 4567',
+    this.customerName = 'Deshan Siriwardhana',
+    this.customerPhone = '0781776315',
+    this.paymentMethod = 'Cash on Delivery',
     required this.orderTime,
     this.status = OrderStatus.onTheWay,
     this.estimatedMinsLeft = 12,
     this.estimatedArrivalTime = '8:42 PM',
     this.destinationLatitude,
     this.destinationLongitude,
+    this.distanceKm = 3.8,
+    this.driverEarningsLkr = 380.0,
+    this.isDriverAssigned = true,
   });
 
   String get statusText {
@@ -51,7 +71,7 @@ class OrderModel {
       case OrderStatus.confirmed:
         return 'Confirmed';
       case OrderStatus.prepped:
-        return 'Prepped';
+        return 'Ready for Pickup';
       case OrderStatus.onTheWay:
         return 'On the Way';
       case OrderStatus.delivered:

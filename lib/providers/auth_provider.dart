@@ -115,6 +115,13 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setRole(UserRole role) {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(role: role);
+      notifyListeners();
+    }
+  }
+
   void updateProfile({
     String? name,
     String? phone,
@@ -122,6 +129,7 @@ class AuthProvider extends ChangeNotifier {
     double? latitude,
     double? longitude,
     String? avatarUrl,
+    UserRole? role,
   }) {
     if (_currentUser != null) {
       _currentUser = _currentUser!.copyWith(
@@ -131,6 +139,7 @@ class AuthProvider extends ChangeNotifier {
         latitude: latitude,
         longitude: longitude,
         avatarUrl: avatarUrl,
+        role: role,
       );
       notifyListeners();
     }
