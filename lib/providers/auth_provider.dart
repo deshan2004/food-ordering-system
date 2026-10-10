@@ -129,10 +129,16 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String phone,
     required String password,
+    UserRole role = UserRole.customer,
+    String? vehicleInfo,
+    String? restaurantName,
   }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
+
+    // Security validation: Prevent public registration as Super Admin
+    final safeRole = (role == UserRole.admin) ? UserRole.customer : role;
 
     try {
       final response = await http.post(
@@ -143,13 +149,20 @@ class AuthProvider extends ChangeNotifier {
           'email': email.trim(),
           'phone': phone.trim(),
           'password': password.trim(),
+          'role': safeRole.name,
+          'vehicle_info': vehicleInfo,
+          'restaurant_name': restaurantName,
         }),
       ).timeout(const Duration(milliseconds: 1500));
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['status'] == true) {
-        _currentUser = UserModel.fromJson(data['user']);
+        _currentUser = UserModel.fromJson(data['user']).copyWith(
+          isVerified: false,
+          vehicleInfo: vehicleInfo,
+          restaurantName: restaurantName,
+        );
         _isLoading = false;
         notifyListeners();
         return true;
@@ -163,14 +176,33 @@ class AuthProvider extends ChangeNotifier {
       name: name.trim().isNotEmpty ? name.trim() : 'Deshan Siriwardhana',
       email: email.trim().isNotEmpty ? email.trim() : 'customer@bonchi.lk',
       phone: phone.trim().isNotEmpty ? phone.trim() : '+94 77 123 4567',
-      role: UserRole.customer,
-      rewardsPoints: 200,
+      role: safeRole,
+      rewardsPoints: safeRole == UserRole.customer ? 200 : 0,
       address: 'No. 42/1, Alfred House Gardens, Colombo 03',
       latitude: 6.8972,
       longitude: 79.8560,
+      isVerified: false,
+      vehicleInfo: vehicleInfo,
+      restaurantName: restaurantName,
     );
     _isLoading = false;
     _errorMessage = null;
+    notifyListeners();
+    return true;
+  }
+
+  Future<bool> verifyAccount({required String otpCode}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    // Simulate OTP / Identity check verification
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(isVerified: true);
+    }
+
+    _isLoading = false;
     notifyListeners();
     return true;
   }
@@ -183,6 +215,7 @@ class AuthProvider extends ChangeNotifier {
   void setRole(UserRole role) {
     if (_currentUser != null) {
       _currentUser = _currentUser!.copyWith(role: role);
+
       notifyListeners();
     }
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import 'account_verification_screen.dart';
 import 'main_navigation_screen.dart';
 import 'login_screen.dart';
 
@@ -20,6 +22,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  // Role-specific controllers
+  UserRole _selectedRole = UserRole.customer;
+  final _vehicleNoController = TextEditingController();
+  String _selectedVehicleType = 'Motorcycle';
+  final _restaurantNameController = TextEditingController();
+  final _restaurantAddressController = TextEditingController();
+
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _agreeTerms = true;
@@ -31,6 +40,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _vehicleNoController.dispose();
+    _restaurantNameController.dispose();
+    _restaurantAddressController.dispose();
     super.dispose();
   }
 
@@ -55,29 +67,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
       email: _emailController.text,
       phone: _phoneController.text,
       password: _passwordController.text,
+      role: _selectedRole,
+      vehicleInfo: _selectedRole == UserRole.driver
+          ? '$_selectedVehicleType (${_vehicleNoController.text.trim()})'
+          : null,
+      restaurantName: _selectedRole == UserRole.restaurant
+          ? _restaurantNameController.text.trim()
+          : null,
     );
 
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.stars, color: AppTheme.starYellow),
-                SizedBox(width: 10),
-                Text('Welcome! You earned 200 Bonchi Reward Points! 🎉'),
-              ],
-            ),
-            backgroundColor: AppTheme.primaryGreen,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-
-        Navigator.pushAndRemoveUntil(
+        // Navigate to Account Verification Screen to verify identity
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-          (route) => false,
+          MaterialPageRoute(
+            builder: (_) => AccountVerificationScreen(
+              email: _emailController.text.trim(),
+              phone: _phoneController.text.trim(),
+              role: _selectedRole,
+            ),
+          ),
         );
       } else if (auth.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -216,17 +226,174 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const Text(
                         'Sign Up',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 20),
-
-                      // Full Name Field
+                      const SizedBox(height: 6),
                       const Text(
-                        'Full Name',
+                        'Choose your account type and start with Bonchi',
                         style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Account Type Selector
+                      const Text(
+                        'Account Type',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _buildRoleTab(
+                            role: UserRole.customer,
+                            label: 'Customer',
+                            subtitle: 'Order Meals',
+                            icon: Icons.person_rounded,
+                            badge: '+200 Pts',
+                          ),
+                          const SizedBox(width: 8),
+                          _buildRoleTab(
+                            role: UserRole.driver,
+                            label: 'Rider',
+                            subtitle: 'Deliver Food',
+                            icon: Icons.two_wheeler_rounded,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildRoleTab(
+                            role: UserRole.restaurant,
+                            label: 'Restaurant',
+                            subtitle: 'Kitchen Partner',
+                            icon: Icons.soup_kitchen_rounded,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Role Specific Fields
+                      if (_selectedRole == UserRole.restaurant) ...[
+                        const Text(
+                          'Restaurant / Kitchen Name',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _restaurantNameController,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: _buildInputDecoration(
+                            hint: 'e.g. Spice Route Colombo',
+                            icon: Icons.restaurant_rounded,
+                          ),
+                          validator: (val) {
+                            if (_selectedRole == UserRole.restaurant && (val == null || val.trim().isEmpty)) {
+                              return 'Please enter your restaurant or kitchen name';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                        const Text(
+                          'Restaurant Address / City',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _restaurantAddressController,
+                          decoration: _buildInputDecoration(
+                            hint: 'e.g. No. 12, Galle Road, Colombo 03',
+                            icon: Icons.location_on_outlined,
+                          ),
+                          validator: (val) {
+                            if (_selectedRole == UserRole.restaurant && (val == null || val.trim().isEmpty)) {
+                              return 'Please enter the restaurant address or location';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                      ],
+
+                      if (_selectedRole == UserRole.driver) ...[
+                        const Text(
+                          'Vehicle Type',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: ['Motorcycle', 'Three-Wheeler', 'Bicycle', 'Car'].map((vType) {
+                            final isSelected = _selectedVehicleType == vType;
+                            return ChoiceChip(
+                              label: Text(vType),
+                              selected: isSelected,
+                              selectedColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                              backgroundColor: const Color(0xFFF9FAFB),
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                              ),
+                              side: BorderSide(
+                                color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade300,
+                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              onSelected: (_) => setState(() => _selectedVehicleType = vType),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 14),
+                        const Text(
+                          'Vehicle Registration Number',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _vehicleNoController,
+                          textCapitalization: TextCapitalization.characters,
+                          decoration: _buildInputDecoration(
+                            hint: 'e.g. WP BBD-4820',
+                            icon: Icons.electric_moped_rounded,
+                          ),
+                          validator: (val) {
+                            if (_selectedRole == UserRole.driver && (val == null || val.trim().isEmpty)) {
+                              return 'Please enter your vehicle registration number';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                      ],
+
+                      // Full Name / Contact Person Field
+                      Text(
+                        _selectedRole == UserRole.restaurant
+                            ? 'Manager / Owner Full Name'
+                            : 'Full Name',
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textPrimary,
@@ -242,7 +409,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) {
-                            return 'Please enter your full name';
+                            return 'Please enter full name';
                           }
                           return null;
                         },
@@ -643,6 +810,101 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleTab({
+    required UserRole role,
+    required String label,
+    required String subtitle,
+    required IconData icon,
+    String? badge,
+  }) {
+    final isSelected = _selectedRole == role;
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _selectedRole = role;
+            });
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppTheme.primaryGreen.withValues(alpha: 0.10)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected ? AppTheme.primaryGreen : Colors.grey.shade300,
+                width: isSelected ? 2 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isSelected
+                      ? AppTheme.primaryGreen.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (badge != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: AppTheme.starYellow.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      badge,
+                      style: const TextStyle(
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFB45309),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                ],
+                Icon(
+                  icon,
+                  size: 22,
+                  color: isSelected ? AppTheme.primaryGreen : AppTheme.textSecondary,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? AppTheme.primaryGreen : AppTheme.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    color: isSelected ? AppTheme.primaryGreen : AppTheme.textMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

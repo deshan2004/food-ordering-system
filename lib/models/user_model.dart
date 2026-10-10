@@ -17,6 +17,10 @@ class UserModel {
   final double? latitude;
   final double? longitude;
 
+  final bool isVerified;
+  final String? vehicleInfo;
+  final String? restaurantName;
+
   UserModel({
     required this.id,
     required this.name,
@@ -28,6 +32,9 @@ class UserModel {
     this.address = 'No. 45, Galle Road, Colombo 03',
     this.latitude,
     this.longitude,
+    this.isVerified = true,
+    this.vehicleInfo,
+    this.restaurantName,
   });
 
   UserModel copyWith({
@@ -41,6 +48,9 @@ class UserModel {
     String? address,
     double? latitude,
     double? longitude,
+    bool? isVerified,
+    String? vehicleInfo,
+    String? restaurantName,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -53,6 +63,9 @@ class UserModel {
       address: address ?? this.address,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      isVerified: isVerified ?? this.isVerified,
+      vehicleInfo: vehicleInfo ?? this.vehicleInfo,
+      restaurantName: restaurantName ?? this.restaurantName,
     );
   }
 
@@ -76,6 +89,9 @@ class UserModel {
       address: json['address']?.toString() ?? 'No. 45, Galle Road, Colombo 03',
       latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
       longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
+      isVerified: json['isVerified'] == null || json['isVerified'] == true || json['isVerified'] == 1 || json['isVerified'] == '1',
+      vehicleInfo: json['vehicleInfo']?.toString(),
+      restaurantName: json['restaurantName']?.toString(),
     );
   }
 
@@ -91,6 +107,9 @@ class UserModel {
       'address': address,
       'latitude': latitude,
       'longitude': longitude,
+      'isVerified': isVerified,
+      'vehicleInfo': vehicleInfo,
+      'restaurantName': restaurantName,
     };
   }
 }
