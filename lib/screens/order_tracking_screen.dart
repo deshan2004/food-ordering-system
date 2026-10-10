@@ -8,6 +8,8 @@ import '../models/order.dart';
 import '../models/chat_message.dart';
 import '../providers/order_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/review_provider.dart';
+import '../providers/loyalty_provider.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
@@ -1637,9 +1639,31 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
                                         restaurantFeedback: restComment,
                                       );
 
-                                      // Award +50 rewards points
+                                      // Save Review to ReviewProvider
+                                      if (order.items.isNotEmpty) {
+                                        try {
+                                          final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+                                          final firstItem = order.items.first;
+                                          reviewProvider.addReview(
+                                            foodItemId: firstItem.foodItem.id,
+                                            foodName: firstItem.foodItem.name,
+                                            restaurantName: order.restaurantName,
+                                            authorName: order.customerName,
+                                            rating: restaurantRating,
+                                            comment: restComment.isNotEmpty ? restComment : 'Delivered hot and fresh! Authentic flavors.',
+                                            dishTags: restaurantTags.toList(),
+                                            userSpiceLevel: firstItem.selectedSpiceLevel?.name,
+                                          );
+                                        } catch (_) {}
+                                      }
+
+                                      // Award +50 rewards points and loyalty coins
                                       try {
                                         Provider.of<AuthProvider>(context, listen: false).addRewardPoints(50);
+                                        Provider.of<LoyaltyProvider>(context, listen: false).earnCoinsFromOrder(
+                                          orderId: order.orderId,
+                                          totalAmountLkr: 750, // awards bonus +22 loyalty coins
+                                        );
                                       } catch (_) {}
 
                                       // Clear active order so screen & app session refresh

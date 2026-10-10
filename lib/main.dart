@@ -8,6 +8,7 @@ import 'providers/payment_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/loyalty_provider.dart';
+import 'providers/review_provider.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
@@ -33,6 +34,7 @@ class FoodOrderingApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => LoyaltyProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
