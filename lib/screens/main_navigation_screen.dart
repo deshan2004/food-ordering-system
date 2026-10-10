@@ -1291,13 +1291,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     }
                   } catch (e) {
                     if (context.mounted) {
+                      final isMissing = e.toString().contains('MissingPluginException');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Could not open camera: $e'),
-                          backgroundColor: Colors.red.shade700,
+                          content: Text(
+                            isMissing
+                                ? 'Native plugin update: Please STOP & re-run (flutter run) the app. Opening avatar picker...'
+                                : 'Could not open camera: $e',
+                          ),
+                          backgroundColor: isMissing ? Colors.orange.shade800 : Colors.red.shade700,
                           behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 4),
                         ),
                       );
+                      if (isMissing) {
+                        _showPresetAvatarsDialog(context, auth);
+                      }
                     }
                   }
                 },
@@ -1344,13 +1353,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     }
                   } catch (e) {
                     if (context.mounted) {
+                      final isMissing = e.toString().contains('MissingPluginException');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Could not open gallery: $e'),
-                          backgroundColor: Colors.red.shade700,
+                          content: Text(
+                            isMissing
+                                ? 'Native plugin update: Please STOP & re-run (flutter run) the app. Opening avatar picker...'
+                                : 'Could not open gallery: $e',
+                          ),
+                          backgroundColor: isMissing ? Colors.orange.shade800 : Colors.red.shade700,
                           behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 4),
                         ),
                       );
+                      if (isMissing) {
+                        _showPresetAvatarsDialog(context, auth);
+                      }
                     }
                   }
                 },
