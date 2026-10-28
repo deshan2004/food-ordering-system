@@ -242,7 +242,10 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> with 
                 initialCenter: _currentCenter,
                 initialZoom: _currentZoom,
                 minZoom: 10.0,
-                maxZoom: 18.5,
+                maxZoom: 19.0,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all,
+                ),
                 onPositionChanged: (position, hasGesture) {
                   if (hasGesture) {
                     if (!_isDragging) {

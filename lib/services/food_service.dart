@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import '../models/food_item.dart';
 import '../models/restaurant_model.dart';
 import 'api_config.dart';
@@ -690,7 +689,7 @@ class FoodService {
 
   static Future<List<FoodItem>> fetchFoodItemsFromApi() async {
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await ApiConfig.getMultiHost('get_foods.php');
       if (response.statusCode == 200) {
         List<dynamic> jsonList = jsonDecode(response.body);
         if (jsonList.isNotEmpty) {

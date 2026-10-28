@@ -16,9 +16,24 @@ $sqlUsers = "CREATE TABLE IF NOT EXISTS users (
 $conn->query($sqlUsers);
 
 // Ensure role column exists if table was created earlier
-$conn->query("SHOW COLUMNS FROM users LIKE 'role'");
-if ($conn->affected_rows == 0) {
+$res = $conn->query("SHOW COLUMNS FROM users LIKE 'role'");
+if ($res->num_rows == 0) {
     $conn->query("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'customer'");
+}
+
+$res = $conn->query("SHOW COLUMNS FROM users LIKE 'avatar_url'");
+if ($res->num_rows == 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT NULL");
+}
+
+$res = $conn->query("SHOW COLUMNS FROM users LIKE 'vehicle_info'");
+if ($res->num_rows == 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN vehicle_info VARCHAR(255) DEFAULT NULL");
+}
+
+$res = $conn->query("SHOW COLUMNS FROM users LIKE 'restaurant_name'");
+if ($res->num_rows == 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN restaurant_name VARCHAR(255) DEFAULT NULL");
 }
 
 // 2. Food Items Table

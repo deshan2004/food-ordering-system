@@ -1,21 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 import '../services/api_config.dart';
 
 class AuthProvider extends ChangeNotifier {
-  UserModel? _currentUser = UserModel(
-    id: 'usr_cust_001',
-    name: 'Deshan Siriwardhana',
-    email: 'customer@bonchi.lk',
-    phone: '+94 77 123 4567',
-    role: UserRole.customer,
-    rewardsPoints: 500,
-    address: 'No. 42/1, Alfred House Gardens, Colombo 03',
-    latitude: 6.8972,
-    longitude: 79.8560,
-  );
+  UserModel? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -89,33 +78,35 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await http.post(
-        Uri.parse(loginUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final response = await ApiConfig.postMultiHost(
+        'login.php',
+        body: {
           'email': email.trim(),
           'password': password.trim(),
-        }),
-      ).timeout(const Duration(milliseconds: 1500));
+        },
+      );
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && data['status'] == true) {
+      if (response.statusCode == 200 && data['status'] == true && data['user'] != null) {
         _currentUser = UserModel.fromJson(data['user']);
         _isLoading = false;
+        _errorMessage = null;
         notifyListeners();
         return true;
+      } else {
+        _errorMessage = data['message']?.toString() ?? 'Invalid email or password.';
+        _isLoading = false;
+        notifyListeners();
+        return false;
       }
     } catch (e) {
-      debugPrint('Login backend unreachable, using seamless demo auth: $e');
+      debugPrint('Login backend error: $e');
+      _errorMessage = 'Cannot connect to database. Please make sure XAMPP Apache and MySQL are running.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-
-    // Seamless instant login with role-specific demo user
-    _currentUser = createDemoUserForEmail(email.trim());
-    _isLoading = false;
-    _errorMessage = null;
-    notifyListeners();
-    return true;
   }
 
   Future<bool> signUp({
@@ -135,10 +126,9 @@ class AuthProvider extends ChangeNotifier {
     final safeRole = (role == UserRole.admin) ? UserRole.customer : role;
 
     try {
-      final response = await http.post(
-        Uri.parse(registerUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final response = await ApiConfig.postMultiHost(
+        'register.php',
+        body: {
           'name': name.trim(),
           'email': email.trim(),
           'phone': phone.trim(),
@@ -146,43 +136,34 @@ class AuthProvider extends ChangeNotifier {
           'role': safeRole.name,
           'vehicle_info': vehicleInfo,
           'restaurant_name': restaurantName,
-        }),
-      ).timeout(const Duration(milliseconds: 1500));
+        },
+      );
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && data['status'] == true) {
+      if (response.statusCode == 200 && data['status'] == true && data['user'] != null) {
         _currentUser = UserModel.fromJson(data['user']).copyWith(
           isVerified: false,
           vehicleInfo: vehicleInfo,
           restaurantName: restaurantName,
         );
         _isLoading = false;
+        _errorMessage = null;
         notifyListeners();
         return true;
+      } else {
+        _errorMessage = data['message']?.toString() ?? 'Registration failed. Please try again.';
+        _isLoading = false;
+        notifyListeners();
+        return false;
       }
     } catch (e) {
-      debugPrint('SignUp backend unreachable, using seamless demo auth: $e');
+      debugPrint('SignUp backend error: $e');
+      _errorMessage = 'Cannot connect to database. Please make sure XAMPP Apache and MySQL are running.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-
-    _currentUser = UserModel(
-      id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-      name: name.trim().isNotEmpty ? name.trim() : 'Deshan Siriwardhana',
-      email: email.trim().isNotEmpty ? email.trim() : 'customer@bonchi.lk',
-      phone: phone.trim().isNotEmpty ? phone.trim() : '+94 77 123 4567',
-      role: safeRole,
-      rewardsPoints: safeRole == UserRole.customer ? 200 : 0,
-      address: 'No. 42/1, Alfred House Gardens, Colombo 03',
-      latitude: 6.8972,
-      longitude: 79.8560,
-      isVerified: false,
-      vehicleInfo: vehicleInfo,
-      restaurantName: restaurantName,
-    );
-    _isLoading = false;
-    _errorMessage = null;
-    notifyListeners();
-    return true;
   }
 
   Future<bool> verifyAccount({required String otpCode}) async {
@@ -222,6 +203,8 @@ class AuthProvider extends ChangeNotifier {
     double? longitude,
     String? avatarUrl,
     UserRole? role,
+    String? vehicleInfo,
+    String? restaurantName,
   }) async {
     if (_currentUser != null) {
       final updatedUser = _currentUser!.copyWith(
@@ -232,24 +215,27 @@ class AuthProvider extends ChangeNotifier {
         longitude: longitude,
         avatarUrl: avatarUrl,
         role: role,
+        vehicleInfo: vehicleInfo,
+        restaurantName: restaurantName,
       );
       _currentUser = updatedUser;
       notifyListeners();
 
       // Async save to MySQL database
       try {
-        await http.post(
-          Uri.parse(ApiConfig.updateProfileUrl),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
+        await ApiConfig.postMultiHost(
+          'update_profile.php',
+          body: {
             'id': updatedUser.id,
             'email': updatedUser.email,
             'name': updatedUser.name,
             'phone': updatedUser.phone,
             'address': updatedUser.address,
             'avatar_url': updatedUser.avatarUrl,
-          }),
-        ).timeout(const Duration(seconds: 4));
+            'vehicle_info': updatedUser.vehicleInfo,
+            'restaurant_name': updatedUser.restaurantName,
+          },
+        );
       } catch (e) {
         debugPrint('MySQL Profile Sync Note: $e');
       }

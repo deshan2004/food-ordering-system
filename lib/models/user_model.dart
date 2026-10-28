@@ -92,8 +92,8 @@ class UserModel {
       latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
       longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       isVerified: json['isVerified'] == null || json['isVerified'] == true || json['isVerified'] == 1 || json['isVerified'] == '1',
-      vehicleInfo: json['vehicleInfo']?.toString(),
-      restaurantName: json['restaurantName']?.toString(),
+      vehicleInfo: json['vehicleInfo']?.toString() ?? json['vehicle_info']?.toString(),
+      restaurantName: json['restaurantName']?.toString() ?? json['restaurant_name']?.toString(),
     );
   }
 

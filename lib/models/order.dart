@@ -36,6 +36,7 @@ class OrderModel {
   final double distanceKm;
   final double driverEarningsLkr;
   bool isDriverAssigned;
+  bool isRestaurantAccepted;
   bool isRated;
   double? riderRatingScore;
   String? riderFeedbackText;
@@ -71,6 +72,7 @@ class OrderModel {
     this.distanceKm = 3.8,
     this.driverEarningsLkr = 380.0,
     this.isDriverAssigned = true,
+    this.isRestaurantAccepted = true,
     this.isRated = false,
     this.riderRatingScore,
     this.riderFeedbackText,

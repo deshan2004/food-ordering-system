@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/coupon_sheet.dart';
 import 'checkout_screen.dart';
+import 'login_screen.dart';
 
 class CartScreen extends StatefulWidget {
   final VoidCallback? onExploreTap;
@@ -265,6 +267,11 @@ class _CartScreenState extends State<CartScreen> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             onPressed: () {
+                              final auth = Provider.of<AuthProvider>(context, listen: false);
+                              if (!auth.isAuthenticated || auth.currentUser == null) {
+                                _showLoginRequiredDialog(context);
+                                return;
+                              }
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (_) => const CheckoutScreen()),
@@ -326,6 +333,61 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.lock_person_rounded, color: AppTheme.primaryGreen, size: 24),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Login Required 🔐',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Please sign in or create an account to proceed to checkout and place your order!',
+          style: TextStyle(fontSize: 13.5, color: AppTheme.textPrimary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+            icon: const Icon(Icons.login_rounded, size: 18),
+            label: const Text('Sign In / Register', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 }

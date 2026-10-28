@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/order.dart';
 import '../services/invoice_pdf_service.dart';
 import '../theme/app_theme.dart';
@@ -29,12 +31,30 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
 
     try {
       final pdfBytes = await InvoicePdfService.generateReceiptPdf(widget.order);
+
+      // Save PDF file directly into device storage
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final cleanOrderId = widget.order.orderId.replaceAll('#', '').replaceAll(' ', '_');
+      final fileName = 'Bonchi_Receipt_$cleanOrderId.pdf';
+      final savedFile = File('${appDocDir.path}/$fileName');
+      await savedFile.writeAsBytes(pdfBytes, flush: true);
+
+      String displayPath = savedFile.path;
+      try {
+        final downloadsDir = await getDownloadsDirectory();
+        if (downloadsDir != null) {
+          final dlFile = File('${downloadsDir.path}/$fileName');
+          await dlFile.writeAsBytes(pdfBytes, flush: true);
+          displayPath = dlFile.path;
+        }
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
           _isGeneratingPdf = false;
         });
 
-        _showPdfDownloadSuccessDialog(pdfBytes.lengthInBytes);
+        _showPdfDownloadSuccessDialog(pdfBytes.lengthInBytes, displayPath, fileName);
       }
     } catch (e) {
       if (mounted) {
@@ -51,7 +71,7 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
     }
   }
 
-  void _showPdfDownloadSuccessDialog(int byteSize) {
+  void _showPdfDownloadSuccessDialog(int byteSize, String filePath, String fileName) {
     final kbSize = (byteSize / 1024).toStringAsFixed(1);
 
     showDialog(
@@ -69,7 +89,12 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
               child: const Icon(Icons.picture_as_pdf_rounded, color: AppTheme.primaryGreen, size: 24),
             ),
             const SizedBox(width: 10),
-            const Text('PDF Generated! 📄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Expanded(
+              child: Text(
+                'Receipt Downloaded! 📄',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -94,10 +119,10 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('File Name:', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                      Text('Bonchi_${widget.order.orderId}.pdf', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text(fileName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -105,13 +130,34 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
                       Text('$kbSize KB', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  const Row(
+                  const SizedBox(height: 6),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: const [
                       Text('Format:', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                       Text('Standard A4 Tax Invoice', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                     ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Divider(height: 1),
+                  const SizedBox(height: 8),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Saved Storage Path:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: SelectableText(
+                      filePath,
+                      style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: AppTheme.textPrimary),
+                    ),
                   ),
                 ],
               ),
@@ -119,9 +165,19 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+          TextButton.icon(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: filePath));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('File storage path copied to clipboard! 📋'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: const Icon(Icons.copy_rounded, size: 16),
+            label: const Text('Copy Path'),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -139,7 +195,7 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Invoice #${widget.order.orderId} saved to documents! 📥',
+                          'PDF invoice downloaded: $fileName 📥',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -151,8 +207,8 @@ class _DigitalReceiptScreenState extends State<DigitalReceiptScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.download_done_rounded, size: 18),
-            label: const Text('Save to Phone', style: TextStyle(fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.check_rounded, size: 18),
+            label: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

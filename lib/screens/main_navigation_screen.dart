@@ -1104,8 +1104,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentRed, foregroundColor: Colors.white),
             onPressed: () {
-              auth.logout();
               Navigator.pop(ctx);
+              auth.logout();
+              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Logged out successfully')),
               );

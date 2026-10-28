@@ -38,15 +38,31 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () {
-              authProvider.logout();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: () => _showLogoutConfirmation(context, authProvider),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentRed.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.accentRed.withValues(alpha: 0.4)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.logout_rounded, size: 14, color: Colors.white),
+                    SizedBox(width: 4),
+                    Text(
+                      'Sign Out',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -108,6 +124,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 onTap: () {},
               ),
             ),
+            const SizedBox(height: 10),
+
+            Container(
+              decoration: AppTheme.glassDecoration(opacity: 0.90, borderRadius: 14, blurRadius: 10),
+              child: ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                leading: CircleAvatar(
+                  backgroundColor: AppTheme.accentRed.withValues(alpha: 0.15),
+                  child: const Icon(Icons.logout_rounded, color: AppTheme.accentRed),
+                ),
+                title: const Text('Sign Out from Admin', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.accentRed)),
+                subtitle: const Text('Exit administrative session and return to app'),
+                trailing: const Icon(Icons.chevron_right, color: AppTheme.accentRed),
+                onTap: () => _showLogoutConfirmation(context, authProvider),
+              ),
+            ),
           ],
         ),
       ),
@@ -133,6 +165,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Text(val, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context, AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Sign Out?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to sign out from the Super Admin Panel?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              auth.logout();
+              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Admin signed out successfully')),
+              );
+            },
+            child: const Text('Sign Out'),
+          ),
+        ],
       ),
     );
   }

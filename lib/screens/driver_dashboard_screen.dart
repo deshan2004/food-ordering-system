@@ -7,7 +7,7 @@ import '../models/chat_message.dart';
 import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
 import '../theme/app_theme.dart';
-import '../models/user_model.dart';
+import 'login_screen.dart';
 import 'order_chat_screen.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
@@ -116,27 +116,26 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ],
         ),
         actions: [
-          // Switch to Customer Demo Mode capsule button
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: InkWell(
-              onTap: () => authProvider.setRole(UserRole.customer),
+              onTap: () => _showLogoutConfirmation(context, authProvider),
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
+                  color: AppTheme.accentRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppTheme.accentRed.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.swap_horiz_rounded, size: 14, color: AppTheme.primaryGreen),
+                    Icon(Icons.logout_rounded, size: 14, color: AppTheme.accentRed),
                     SizedBox(width: 4),
                     Text(
-                      'Customer App',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                      'Sign Out',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.accentRed),
                     ),
                   ],
                 ),
@@ -454,7 +453,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'As soon as a customer orders from a hotel near Colombo 03, the pickup job will ping here.',
+                      'As soon as a restaurant accepts a customer order, the pickup job will ping here for driver acceptance.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
                     ),
@@ -512,10 +511,25 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF3730A3)),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${order.items.length} items • ${order.paymentMethod}',
-                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle_outline, size: 11, color: Colors.orange.shade800),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Kitchen Accepted 🍳',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -934,6 +948,179 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
                 const SizedBox(height: 14),
 
+                // Live Navigation Map inside Active Trip
+                Container(
+                  height: 220,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    children: [
+                      FlutterMap(
+                        options: MapOptions(
+                          initialCenter: LatLng(
+                            (order.restaurantLatitude + (order.destinationLatitude ?? 6.9015)) / 2,
+                            (order.restaurantLongitude + (order.destinationLongitude ?? 79.8560)) / 2,
+                          ),
+                          initialZoom: 13.8,
+                          maxZoom: 19.0,
+                          minZoom: 10.0,
+                          interactionOptions: const InteractionOptions(
+                            flags: InteractiveFlag.all,
+                          ),
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.bonchi.food_ordering_system',
+                            maxZoom: 19,
+                          ),
+                          PolylineLayer(
+                            polylines: [
+                              Polyline(
+                                points: [
+                                  LatLng(order.restaurantLatitude, order.restaurantLongitude),
+                                  LatLng(
+                                    (order.restaurantLatitude + (order.destinationLatitude ?? 6.9015)) / 2 + 0.0010,
+                                    (order.restaurantLongitude + (order.destinationLongitude ?? 79.8560)) / 2 - 0.0008,
+                                  ),
+                                  LatLng(
+                                    order.destinationLatitude ?? 6.9015,
+                                    order.destinationLongitude ?? 79.8560,
+                                  ),
+                                ],
+                                strokeWidth: 5.0,
+                                color: isHeadingToRestaurant ? Colors.orange.shade700 : AppTheme.primaryGreen,
+                                borderColor: Colors.white,
+                                borderStrokeWidth: 1.5,
+                              ),
+                            ],
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              // 1. Restaurant Marker
+                              Marker(
+                                point: LatLng(order.restaurantLatitude, order.restaurantLongitude),
+                                width: 44,
+                                height: 44,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.shade600,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                                  ),
+                                  child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 22),
+                                ),
+                              ),
+                              // 2. Customer Destination Marker
+                              Marker(
+                                point: LatLng(
+                                  order.destinationLatitude ?? 6.9015,
+                                  order.destinationLongitude ?? 79.8560,
+                                ),
+                                width: 44,
+                                height: 44,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.accentRed,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                                  ),
+                                  child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 24),
+                                ),
+                              ),
+                              // 3. Driver Live Marker
+                              Marker(
+                                point: isHeadingToRestaurant
+                                    ? LatLng(order.restaurantLatitude + 0.0020, order.restaurantLongitude - 0.0018)
+                                    : LatLng(
+                                        (order.restaurantLatitude + (order.destinationLatitude ?? 6.9015)) / 2,
+                                        (order.restaurantLongitude + (order.destinationLongitude ?? 79.8560)) / 2,
+                                      ),
+                                width: 48,
+                                height: 48,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryGreen,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2.5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                                        blurRadius: 8,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.two_wheeler_rounded, color: Colors.white, size: 26),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Top Left Route Stage Pill
+                      Positioned(
+                        top: 10,
+                        left: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A).withValues(alpha: 0.88),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isHeadingToRestaurant ? Icons.arrow_outward_rounded : Icons.navigation_rounded,
+                                size: 13,
+                                color: isHeadingToRestaurant ? Colors.orangeAccent : const Color(0xFF22C55E),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                isHeadingToRestaurant ? 'Pickup: ${order.restaurantName}' : 'Delivery: ${order.deliveryAddress}',
+                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Fullscreen Expand Button on Top-Right
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 16,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.fullscreen_rounded, color: AppTheme.textPrimary, size: 20),
+                            tooltip: 'Expand Map',
+                            onPressed: () => _showRouteMapDialog(context, order),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
                 // Order items list preview
                 const Text('Items in this Delivery:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textSecondary)),
                 const SizedBox(height: 6),
@@ -1288,6 +1475,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     label: const Text('Edit Vehicle & Details', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.accentRed,
+                      side: BorderSide(color: AppTheme.accentRed.withValues(alpha: 0.4)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: () {
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
+                      _showLogoutConfirmation(context, auth);
+                    },
+                    icon: const Icon(Icons.logout_rounded, size: 16),
+                    label: const Text('Sign Out Driver Account', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1462,13 +1667,40 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             Expanded(
               child: FlutterMap(
                 options: MapOptions(
-                  initialCenter: restaurantCoord,
-                  initialZoom: 13.5,
+                  initialCenter: LatLng(
+                    (restaurantCoord.latitude + deliveryCoord.latitude) / 2,
+                    (restaurantCoord.longitude + deliveryCoord.longitude) / 2,
+                  ),
+                  initialZoom: 13.8,
+                  maxZoom: 19.0,
+                  minZoom: 10.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all,
+                  ),
                 ),
                 children: [
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.foodordering.foodOrderingSystem',
+                    userAgentPackageName: 'com.bonchi.food_ordering_system',
+                    maxZoom: 19,
+                  ),
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: [
+                          restaurantCoord,
+                          LatLng(
+                            (restaurantCoord.latitude + deliveryCoord.latitude) / 2 + 0.0010,
+                            (restaurantCoord.longitude + deliveryCoord.longitude) / 2 - 0.0008,
+                          ),
+                          deliveryCoord,
+                        ],
+                        strokeWidth: 5.0,
+                        color: AppTheme.primaryGreen,
+                        borderColor: Colors.white,
+                        borderStrokeWidth: 1.5,
+                      ),
+                    ],
                   ),
                   MarkerLayer(
                     markers: [
@@ -1477,10 +1709,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         point: restaurantCoord,
                         width: 50,
                         height: 50,
-                        child: const Column(
-                          children: [
-                            Icon(Icons.storefront_rounded, color: Colors.orange, size: 34),
-                          ],
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade600,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                          ),
+                          child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 26),
                         ),
                       ),
                       // Delivery Destination Marker
@@ -1488,10 +1724,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         point: deliveryCoord,
                         width: 50,
                         height: 50,
-                        child: const Column(
-                          children: [
-                            Icon(Icons.location_on_rounded, color: AppTheme.accentRed, size: 38),
-                          ],
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentRed,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                          ),
+                          child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 28),
                         ),
                       ),
                     ],
@@ -1517,6 +1757,42 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context, AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Sign Out?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to sign out from the Driver account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              auth.logout();
+              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Driver signed out successfully')),
+              );
+            },
+            child: const Text('Sign Out'),
+          ),
+        ],
       ),
     );
   }

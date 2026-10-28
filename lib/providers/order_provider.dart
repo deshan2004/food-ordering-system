@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import '../models/order.dart';
 import '../models/cart_item.dart';
 import '../services/notification_service.dart';
@@ -56,7 +54,7 @@ class OrderProvider with ChangeNotifier {
   }
 
   List<OrderModel> get availableDriverJobs =>
-      _orders.where((o) => !o.isDriverAssigned && o.status != OrderStatus.delivered).toList();
+      _orders.where((o) => !o.isDriverAssigned && o.isRestaurantAccepted && o.status != OrderStatus.delivered).toList();
 
   List<OrderModel> get myAcceptedDriverDeliveries =>
       _orders.where((o) => o.isDriverAssigned && o.status != OrderStatus.delivered).toList();
@@ -83,8 +81,8 @@ class OrderProvider with ChangeNotifier {
       discountLkr: discountLkr,
       grandTotalLkr: grandTotalLkr,
       deliveryAddress: deliveryAddress,
-      customerName: customerName ?? 'Deshan Siriwardhana',
-      customerPhone: customerPhone ?? '0781776315',
+      customerName: customerName ?? 'Customer',
+      customerPhone: customerPhone ?? '',
       paymentMethod: paymentMethod ?? 'Cash on Delivery',
       deliveryTimeOption: deliveryTimeOption ?? 'ASAP (20-25 min)',
       destinationLatitude: destinationLatitude,
@@ -94,6 +92,7 @@ class OrderProvider with ChangeNotifier {
       orderTime: DateTime.now(),
       status: OrderStatus.confirmed,
       isDriverAssigned: false,
+      isRestaurantAccepted: false,
       riderName: 'Looking for nearby Rider...',
       riderVehicle: 'Assigning...',
     );
@@ -140,11 +139,29 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
+  void acceptOrderByRestaurant(String orderId) {
+    final idx = _orders.indexWhere((o) => o.orderId == orderId);
+    if (idx != -1) {
+      _orders[idx].isRestaurantAccepted = true;
+      _orders[idx].status = OrderStatus.prepped;
+      notifyListeners();
+
+      NotificationService.instance.showOrderNotification(
+        orderId: orderId,
+        title: '🍳 Order Accepted by Restaurant!',
+        body: 'The restaurant kitchen has accepted order $orderId and started cooking! Available for rider pickup.',
+        payload: orderId,
+      );
+    }
+  }
+
   void updateOrderStatus(String orderId, OrderStatus newStatus) {
     final idx = _orders.indexWhere((o) => o.orderId == orderId);
     if (idx != -1) {
       _orders[idx].status = newStatus;
-      if (newStatus == OrderStatus.onTheWay) {
+      if (newStatus == OrderStatus.prepped) {
+        _orders[idx].isRestaurantAccepted = true;
+      } else if (newStatus == OrderStatus.onTheWay) {
         _orders[idx].estimatedMinsLeft = 10;
       } else if (newStatus == OrderStatus.delivered) {
         _orders[idx].estimatedMinsLeft = 0;
@@ -190,13 +207,12 @@ class OrderProvider with ChangeNotifier {
         }).toList(),
       };
 
-      await http.post(
-        Uri.parse(ApiConfig.placeOrderUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
+      await ApiConfig.postMultiHost(
+        'place_order.php',
+        body: payload,
       );
     } catch (e) {
-      print('MySQL Order Sync Error: $e');
+      debugPrint('MySQL Order Sync Error: $e');
     }
   }
 }

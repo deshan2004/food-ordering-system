@@ -5,7 +5,7 @@ import '../models/chat_message.dart';
 import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
 import '../theme/app_theme.dart';
-import '../models/user_model.dart';
+import 'login_screen.dart';
 import 'order_chat_screen.dart';
 
 class RestaurantDashboardScreen extends StatefulWidget {
@@ -150,27 +150,26 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
           ],
         ),
         actions: [
-          // Switch to Customer Demo Mode capsule button
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: InkWell(
-              onTap: () => authProvider.setRole(UserRole.customer),
+              onTap: () => _showLogoutConfirmation(context, authProvider),
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
+                  color: AppTheme.accentRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppTheme.accentRed.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.swap_horiz_rounded, size: 14, color: AppTheme.primaryGreen),
+                    Icon(Icons.logout_rounded, size: 14, color: AppTheme.accentRed),
                     SizedBox(width: 4),
                     Text(
-                      'Customer App',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                      'Sign Out',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.accentRed),
                     ),
                   ],
                 ),
@@ -470,8 +469,8 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
   }
 
   Widget _buildKitchenOrderCard(OrderProvider orderProvider, OrderModel order) {
-    final isNew = order.status == OrderStatus.confirmed;
-    final isPrepping = order.status == OrderStatus.prepped;
+    final isNew = !order.isRestaurantAccepted || order.status == OrderStatus.confirmed;
+    final isPrepping = order.isRestaurantAccepted && order.status == OrderStatus.prepped;
     final isPickedUp = order.status == OrderStatus.onTheWay;
 
     Color statusBadgeColor = isNew
@@ -481,10 +480,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
             : AppTheme.primaryGreen;
 
     String statusText = isNew
-        ? 'NEW ORDER'
+        ? 'WAITING ACCEPTANCE ⏳'
         : isPrepping
-            ? 'COOKING'
-            : 'PICKED UP';
+            ? 'COOKING 🔥'
+            : 'PICKED UP 🛵';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -705,10 +704,10 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       onPressed: () {
-                        orderProvider.updateOrderStatus(order.orderId, OrderStatus.prepped);
+                        orderProvider.acceptOrderByRestaurant(order.orderId);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Order ${order.orderId} accepted! Chefs started cooking.'),
+                            content: Text('Order ${order.orderId} accepted! Kitchen cooking, dispatched to drivers 🛵'),
                             backgroundColor: Colors.orange.shade800,
                             behavior: SnackBarBehavior.floating,
                           ),
@@ -1125,6 +1124,24 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
                 _buildHotelInfoRow('Average Food Prep Time', '12 - 18 Minutes', Icons.timer_rounded),
                 const SizedBox(height: 12),
                 _buildHotelInfoRow('Settlement Bank Account', 'Hatton National Bank • Acc 0048 •••• 1192', Icons.account_balance_rounded),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.accentRed,
+                      side: BorderSide(color: AppTheme.accentRed.withValues(alpha: 0.4)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: () {
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
+                      _showLogoutConfirmation(context, auth);
+                    },
+                    icon: const Icon(Icons.logout_rounded, size: 16),
+                    label: const Text('Sign Out from Restaurant', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1213,6 +1230,42 @@ class _RestaurantDashboardScreenState extends State<RestaurantDashboardScreen> {
               );
             },
             child: const Text('Confirm Transfer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context, AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Sign Out?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to sign out from the Restaurant Kitchen account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              auth.logout();
+              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Restaurant signed out successfully')),
+              );
+            },
+            child: const Text('Sign Out'),
           ),
         ],
       ),

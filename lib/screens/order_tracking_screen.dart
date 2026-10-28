@@ -60,6 +60,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
   double _simSpeed = 1.0;
   bool _autoFollow = true;
   bool _hasTriggeredArrival = false;
+  bool _mapReady = false;
+  bool _isSheetCollapsed = false;
 
   @override
   void initState() {
@@ -85,7 +87,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
     _riderAnimController.addListener(() {
       if (mounted) {
         setState(() {});
-        if (_autoFollow) {
+        if (_autoFollow && _mapReady) {
           final progress = _currentRouteProgress;
           _mapController.move(progress.currentPosition, _currentZoom);
         }
@@ -188,7 +190,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
         setState(() {
           _userGpsLocation = LatLng(loc.latitude, loc.longitude);
         });
-        _mapController.move(_userGpsLocation!, 15.0);
+        if (_mapReady) {
+          _mapController.move(_userGpsLocation!, 15.0);
+        }
       }
     } catch (e) {
       debugPrint('Live GPS fetch fallback: $e');
@@ -314,20 +318,30 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
 
   void _zoomIn() {
     setState(() {
-      _currentZoom = (_currentZoom + 0.8).clamp(10.0, 18.0);
-      _mapController.move(_currentRouteProgress.currentPosition, _currentZoom);
+      _currentZoom = (_currentZoom + 0.8).clamp(10.0, 18.5);
     });
+    if (_mapReady) {
+      _mapController.move(_currentRouteProgress.currentPosition, _currentZoom);
+    }
   }
 
   void _zoomOut() {
     setState(() {
-      _currentZoom = (_currentZoom - 0.8).clamp(10.0, 18.0);
-      _mapController.move(_currentRouteProgress.currentPosition, _currentZoom);
+      _currentZoom = (_currentZoom - 0.8).clamp(10.0, 18.5);
     });
+    if (_mapReady) {
+      _mapController.move(_currentRouteProgress.currentPosition, _currentZoom);
+    }
   }
 
   void _reCenter() {
-    _mapController.move(_currentRouteProgress.currentPosition, 15.0);
+    setState(() {
+      _autoFollow = true;
+      _currentZoom = 15.0;
+    });
+    if (_mapReady) {
+      _mapController.move(_currentRouteProgress.currentPosition, 15.0);
+    }
   }
 
   @override
@@ -348,17 +362,36 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
               // Real OpenStreetMap Layer using flutter_map
               FlutterMap(
                 mapController: _mapController,
-                options: const MapOptions(
-                  initialCenter: LatLng(6.9048, 79.8530),
+                options: MapOptions(
+                  initialCenter: const LatLng(6.9048, 79.8530),
                   initialZoom: 14.8,
-                  maxZoom: 18.5,
-                  minZoom: 11.0,
+                  maxZoom: 19.0,
+                  minZoom: 10.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all,
+                  ),
+                  onMapReady: () {
+                    if (mounted) {
+                      setState(() {
+                        _mapReady = true;
+                      });
+                    }
+                  },
+                  onPositionChanged: (position, hasGesture) {
+                    if (hasGesture && _autoFollow) {
+                      setState(() {
+                        _autoFollow = false;
+                      });
+                    }
+                    _currentZoom = position.zoom;
+                  },
                 ),
                 children: [
                   // OpenStreetMap Tile Layer
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.bonchi.food_ordering_system',
+                    maxZoom: 19,
                   ),
 
                   // Route Polylines: Completed (gray) + Remaining (emerald glow)
@@ -648,63 +681,162 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
                   ),
                   child: SafeArea(
                     top: false,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Handle bar top
-                        Center(
-                          child: Container(
-                            width: 36,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutCubic,
+                      alignment: Alignment.bottomCenter,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                        // Interactive Handle Bar & Toggle Header
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onVerticalDragEnd: (details) {
+                            if (details.primaryVelocity != null) {
+                              if (details.primaryVelocity! > 120) {
+                                setState(() => _isSheetCollapsed = true);
+                              } else if (details.primaryVelocity! < -120) {
+                                setState(() => _isSheetCollapsed = false);
+                              }
+                            }
+                          },
+                          onTap: () {
+                            setState(() {
+                              _isSheetCollapsed = !_isSheetCollapsed;
+                            });
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Handle bar pill
+                              Center(
+                                child: Container(
+                                  width: 44,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade300,
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              // LIVE TRACKING Header + Map / Details Toggle
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.circle, color: AppTheme.primaryGreen, size: 8),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        freshOrder.status == OrderStatus.delivered
+                                            ? 'ORDER DELIVERED 🎉'
+                                            : 'LIVE STREET TRACKING 🚚',
+                                        style: TextStyle(
+                                          color: AppTheme.primaryGreen.withValues(alpha: 0.9),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFECFDF5),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          '${routeProgress.remainingDistanceKm.toStringAsFixed(1)} KM AWAY',
+                                          style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.w800),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Toggle Full Map / Order Details Button
+                                      InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _isSheetCollapsed = !_isSheetCollapsed;
+                                          });
+                                        },
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                          decoration: BoxDecoration(
+                                            color: _isSheetCollapsed ? AppTheme.primaryGreen.withValues(alpha: 0.15) : Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: _isSheetCollapsed ? AppTheme.primaryGreen.withValues(alpha: 0.3) : Colors.grey.shade300,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                _isSheetCollapsed ? 'Details' : 'Full Map',
+                                                style: TextStyle(
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: _isSheetCollapsed ? AppTheme.primaryGreen : AppTheme.textSecondary,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 2),
+                                              Icon(
+                                                _isSheetCollapsed ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                                size: 15,
+                                                color: _isSheetCollapsed ? AppTheme.primaryGreen : AppTheme.textSecondary,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
 
-                        const SizedBox(height: 14),
-
-                        // LIVE TRACKING Header + Distance Badge
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
+                        if (_isSheetCollapsed) ...[
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                _isSheetCollapsed = false;
+                              });
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(Icons.circle, color: AppTheme.primaryGreen, size: 8),
-                                const SizedBox(width: 6),
                                 Text(
-                                  'LIVE STREET TRACKING 🚚',
-                                  style: TextStyle(
-                                    color: AppTheme.primaryGreen.withValues(alpha: 0.9),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
+                                  freshOrder.status == OrderStatus.delivered
+                                      ? 'Food arrived safely! ⭐ Tap to rate'
+                                      : '${routeProgress.remainingEtaMinutes} mins until Bonchi! 🛵',
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                ),
+                                Row(
+                                  children: const [
+                                    Text('Tap to expand', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                    Icon(Icons.keyboard_arrow_up_rounded, color: AppTheme.primaryGreen, size: 16),
+                                  ],
                                 ),
                               ],
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFECFDF5),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${routeProgress.remainingDistanceKm.toStringAsFixed(1)} KM AWAY',
-                                style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 10, fontWeight: FontWeight.w800),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ] else ...[
+                          const SizedBox(height: 10),
 
-                        const SizedBox(height: 6),
-
-                        // ETA Title or Delivery Success Header
-                        if (freshOrder.status == OrderStatus.delivered || routeProgress.remainingEtaMinutes <= 0) ...[
-                          Row(
-                            children: [
+                          // ETA Title or Delivery Success Header
+                          if (freshOrder.status == OrderStatus.delivered || routeProgress.remainingEtaMinutes <= 0) ...[
+                            Row(
+                              children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
@@ -767,62 +899,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
 
                         // Step Timeline Progress Bar
                         _buildStepProgressBar(context, freshOrder),
-
-                        const SizedBox(height: 14),
-
-                        // Lock Screen & Audio Alerts Indicator + Simulator
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF059669).withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.2)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.notifications_active_rounded, color: AppTheme.primaryGreen, size: 20),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Lock Screen & Audio Alerts Active 🔔',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: AppTheme.primaryGreen),
-                                    ),
-                                    Text(
-                                      'You will receive sound notifications even if screen is locked or app is minimized.',
-                                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (freshOrder.status != OrderStatus.delivered) ...[
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                    backgroundColor: AppTheme.primaryGreen,
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  onPressed: () {
-                                    // Progress to next stage and trigger lockscreen notification
-                                    if (freshOrder.status == OrderStatus.confirmed) {
-                                      orderProvider.updateOrderStatus(freshOrder.orderId, OrderStatus.prepped);
-                                    } else if (freshOrder.status == OrderStatus.prepped) {
-                                      orderProvider.updateOrderStatus(freshOrder.orderId, OrderStatus.onTheWay);
-                                    } else if (freshOrder.status == OrderStatus.onTheWay) {
-                                      orderProvider.updateOrderStatus(freshOrder.orderId, OrderStatus.delivered);
-                                    }
-                                  },
-                                  child: const Text('Next Stage ⏩', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
 
                         const SizedBox(height: 16),
 
@@ -1100,10 +1176,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with TickerPr
                           ),
                         ],
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ),
+            ),
+          ),
             ],
           ),
         );

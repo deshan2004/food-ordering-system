@@ -260,49 +260,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20),
 
                       // Email Field
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Email Address',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
-                            ),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Email Address',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
                           ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                _emailController.text = 'customer@bonchi.lk';
-                                _passwordController.text = 'password123';
-                              });
-                            },
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.flash_on_rounded, size: 12, color: AppTheme.primaryGreen),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'Fill Demo',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryGreen,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(

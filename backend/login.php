@@ -11,7 +11,7 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
-$stmt = $conn->prepare("SELECT id, name, email, phone, password, role, address, rewardsPoints FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT id, name, email, phone, password, role, address, rewardsPoints, avatar_url, vehicle_info, restaurant_name FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -29,7 +29,10 @@ if ($result->num_rows === 1) {
                 "phone" => $row['phone'] ?? '',
                 "role" => $row['role'] ?? 'customer',
                 "address" => $row['address'] ?? 'No. 45, Galle Road, Colombo 03',
-                "rewardsPoints" => (int)($row['rewardsPoints'] ?? 200)
+                "rewardsPoints" => (int)($row['rewardsPoints'] ?? 200),
+                "avatarUrl" => $row['avatar_url'] ?? '',
+                "vehicleInfo" => $row['vehicle_info'] ?? null,
+                "restaurantName" => $row['restaurant_name'] ?? null
             ]
         ]);
     } else {
